@@ -3,110 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TimeFlow - Student Task Manager</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>TimeFlow - 3D Task Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Sora:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         :root {
             --primary: #6366f1;
-            --secondary: #ec4899;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+            --secondary: #a855f7;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --bg: #0f172a;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Sora', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
             color: #f1f5f9;
+            min-height: 100vh;
             overflow-x: hidden;
         }
 
-        body.light-mode {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            color: #0f172a;
+        /* 3D GLASS CARD EFFECT */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.05);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
         }
 
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .glass-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            border-color: var(--primary);
+        }
 
         /* WELCOME SCREEN */
         .welcome-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: var(--bg);
             z-index: 2000;
         }
 
-        .welcome-screen.hidden {
-            display: none;
-        }
+        .welcome-screen.hidden { opacity: 0; pointer-events: none; transition: 0.5s; }
 
-        .welcome-content {
+        /* ANALOG/DIGITAL CLOCK COMBO */
+        .clock-container {
             text-align: center;
-        }
-
-        .welcome-icon {
-            font-size: 80px;
+            padding: 20px;
             margin-bottom: 20px;
         }
 
-        .welcome-title {
-            font-size: 48px;
+        .digital-clock {
+            font-family: 'Poppins';
+            font-size: 3.5rem;
             font-weight: 700;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        /* APP LAYOUT */
+        .app-screen { display: none; padding: 20px; padding-bottom: 100px; max-width: 600px; margin: 0 auto; }
+        .app-screen.active { display: block; animation: fadeIn 0.8s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+
+        /* BUTTONS */
+        .btn-3d {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            margin-bottom: 10px;
-            font-family: 'Poppins', sans-serif;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            transition: 0.2s;
         }
 
-        .welcome-subtitle {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 50px;
-        }
+        .btn-3d:active { transform: scale(0.95); }
 
-        .welcome-form {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 40px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 350px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: white;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        /* INPUTS */
+        input {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            padding: 15px;
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
             color: white;
-            font-size: 16px;
-            font-family: 'Sora', sans-serif;
+            width: 100%;
+            outline: none;
         }
 
+        /* BOTTOM NAV */
+        .nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            height: 70px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .nav-btn { color: #94a3b8; font-size: 20px; cursor: pointer; transition: 0.3s; }
+        .nav-btn.active { color: var(--primary); transform: scale(1.2); text-shadow: 0 0 10px var(--primary); }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .task-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); margin-right: 15px; box-shadow: 0 0 10px var(--primary); }
+
+        .fab {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. WELCOME SECTION -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="glass-card" style="padding: 40px; width: 90%; max-width: 400px; text-align: center;">
+            <i class="fas fa-clock" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
+            <h1 style="margin-bottom: 10px; font-family: 'Poppins';">TimeFlow</h1>
+            <p style="opacity: 0.7; margin-bottom: 30px;">Elevate your productivity</p>
+            <input type="text" id="nameInput" placeholder="Your Name..." style="margin-bottom: 20px;">
+            <button class="btn-3d" style="width: 100%;" onclick="handleStart()">Enter Dashboard</button>
+        </div>
+    </div>
+
+    <!-- 2. APP SECTION -->
+    <div class="app-screen" id="appScreen">
+        <div class="header">
+            <div>
+                <h2 style="font-family: 'Poppins';" id="greeting">Hello!</h2>
+                <p style="opacity: 0.6;" id="dateDisplay">Monday, May 24</p>
+            </div>
+            <div class="glass-card" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 15px;">
+                <i class="fas fa-user-astronaut"></i>
+            </div>
+        </div>
+
+        <!-- Working Clock Section -->
+        <div class="glass-card clock-container">
+            <div class="digital-clock" id="clock">00:00:00</div>
+            <p style="font-size: 0.8rem; letter-spacing: 2px; opacity: 0.5; text-transform: uppercase;">Real-time Focus</p>
+        </div>
+
+        <div id="dashboardView" class="view">
+            <h3 style="margin: 20px 0 15px;">Today's Priorities</h3>
+            <div id="taskList">
+                <!-- Tasks will appear here -->
+                <div class="glass-card task-item" style="opacity: 0.5;">
+                    <div class="task-dot"></div>
+                    <div>
+                        <p>Welcome to TimeFlow!</p>
+                        <small>Add your first task using the + button</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="glass-card btn-3d fab" onclick="toggleTaskModal()">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="glass-card nav">
+        <i class="fas fa-home nav-btn active"></i>
+        <i class="fas fa-book nav-btn"></i>
+        <i class="fas fa-chart-pie nav-btn"></i>
+        <i class="fas fa-cog nav-btn" onclick="resetAll()"></i>
+    </nav>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            name: localStorage.getItem('tf_name') || '',
+            tasks: JSON.parse(localStorage.getItem('tf_tasks')) || []
+        };
+
+        // --- Init ---
+        window.onload = () => {
+            if (state.name) {
+                startApp();
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        };
+
+        function handleStart() {
+            const input = document.getElementById('nameInput').value.trim();
+            if (input) {
+                state.name = input;
+                localStorage.setItem('tf_name', input);
+                startApp();
+            } else {
+                alert("Please enter your name!");
+            }
+        }
+
+        function startApp() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.add('active');
+            document.getElementById('greeting').innerText = `Hello, ${state.name}!`;
+            renderTasks();
+        }
+
+        // --- Clock Logic ---
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            
+            if(document.getElementById('clock')) {
+                document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+            }
+
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            document.getElementById('dateDisplay').innerText = now.toLocaleDateString(undefined, options);
+        }
+
+        // --- Task Logic ---
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            if (state.tasks.length > 0) {
+                list.innerHTML = state.tasks.map((t, i) => `
+                    <div class="glass-card task-item">
+                        <div class="task-dot"></div>
+                        <div style="flex: 1">
+                            <p>${t.title}</p>
+                            <small>${t.time || 'All Day'}</small>
+                        </div>
+                        <i class="fas fa-trash" style="opacity:0.3; cursor:pointer" onclick="deleteTask(${i})"></i>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function toggleTaskModal() {
+            const title = prompt("What needs to be done?");
+            if (title) {
+                state.tasks.push({ title, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+                localStorage.setItem('tf_tasks', JSON.stringify(state.tasks));
+                renderTasks();
+            }
+        }
+
+        function deleteTask(index) {
+            state.tasks.splice(index, 1);
+            localStorage.setItem('tf_tasks', JSON.stringify(state.tasks));
+            renderTasks();
+        }
+
+        function resetAll() {
+            if(confirm("Reset everything?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
         .form-group input::placeholder {
             color: rgba(255, 255, 255, 0.6);
         }
