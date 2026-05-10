@@ -3,111 +3,1386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TimeFlow - Student Task & Subject Manager</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>TimeFlow - Student Task Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ===== ROOT VARIABLES ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         :root {
             --primary: #6366f1;
-            --primary-dark: #4f46e5;
             --secondary: #ec4899;
-            --accent: #06b6d4;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            
-            --dark-bg: #0f172a;
-            --dark-bg-secondary: #1e293b;
-            --dark-bg-tertiary: #334155;
-            --dark-text: #f1f5f9;
-            --dark-text-secondary: #cbd5e1;
-            
-            --light-bg: #f8fafc;
-            --light-bg-secondary: #f1f5f9;
-            --light-bg-tertiary: #e2e8f0;
-            --light-text: #0f172a;
-            --light-text-secondary: #475569;
-            
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
-            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.16);
-            
-            --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-fast: all 0.15s ease-out;
-        }
-
-        body.dark-mode {
-            --current-bg: var(--dark-bg);
-            --current-bg-secondary: var(--dark-bg-secondary);
-            --current-bg-tertiary: var(--dark-bg-tertiary);
-            --current-text: var(--dark-text);
-            --current-text-secondary: var(--dark-text-secondary);
-        }
-
-        body.light-mode {
-            --current-bg: var(--light-bg);
-            --current-bg-secondary: var(--light-bg-secondary);
-            --current-bg-tertiary: var(--light-bg-tertiary);
-            --current-text: var(--light-text);
-            --current-text-secondary: var(--light-text-secondary);
         }
 
         body {
             font-family: 'Sora', sans-serif;
-            background: linear-gradient(135deg, var(--current-bg) 0%, var(--current-bg-secondary) 100%);
-            color: var(--current-text);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+            overflow-x: hidden;
         }
 
-        body::before {
-            content: '';
+        body.light-mode {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #0f172a;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        /* WELCOME SCREEN */
+        .welcome-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .welcome-screen.hidden {
+            display: none;
         }
 
-        ::-webkit-scrollbar-track {
-            background: transparent;
+        .welcome-content {
+            text-align: center;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary);
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 50px;
+        }
+
+        .welcome-form {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: white;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        /* APP SCREEN */
+        .app-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .app-screen.hidden {
+            display: none;
+        }
+
+        .app-header {
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        body.light-mode .app-header {
+            background: rgba(241, 245, 249, 0.8);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(99, 102, 241, 0.1);
             border-radius: 10px;
-            transition: var(--transition-fast);
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s ease;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-dark);
+        .icon-btn:hover {
+            background: var(--primary);
+            color: white;
         }
 
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        body.light-mode .card {
+            background: rgba(241, 245, 249, 0.5);
+        }
+
+        .greeting-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+        }
+
+        .greeting-text {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .greeting-time {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .datetime-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .datetime-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        body.light-mode .datetime-card {
+            background: rgba(241, 245, 249, 0.5);
+        }
+
+        .datetime-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        body.light-mode .datetime-label {
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        .datetime-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* PROGRESS */
+        .progress-tracker {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .progress-item {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        body.light-mode .progress-item {
+            background: rgba(241, 245, 249, 0.5);
+        }
+
+        .progress-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .progress-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 4px;
+        }
+
+        body.light-mode .progress-label {
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        .progress-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* TASKS */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        body.light-mode .task-item {
+            background: rgba(241, 245, 249, 0.5);
+        }
+
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .task-checkbox.checked {
+            background: var(--primary);
+            color: white;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .task-meta {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        body.light-mode .task-meta {
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-action-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .task-action-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* SUBJECTS */
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .subject-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+        }
+
+        body.light-mode .subject-card {
+            background: rgba(241, 245, 249, 0.5);
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .subject-icon {
+            font-size: 32px;
+        }
+
+        .subject-menu {
+            width: 30px;
+            height: 30px;
+            background: rgba(99, 102, 241, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        .subject-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .subject-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        body.light-mode .stat-label {
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        body.light-mode .modal-content {
+            background: rgba(241, 245, 249, 0.95);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+        }
+
+        .form-field {
+            margin-bottom: 15px;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-field input,
+        .form-field textarea,
+        .form-field select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.5);
+            color: #f1f5f9;
+            font-family: 'Sora', sans-serif;
+            font-size: 14px;
+        }
+
+        body.light-mode .form-field input,
+        body.light-mode .form-field textarea,
+        body.light-mode .form-field select {
+            background: rgba(241, 245, 249, 0.5);
+            color: #0f172a;
+        }
+
+        .form-field input:focus,
+        .form-field textarea:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        body.light-mode .bottom-nav {
+            background: rgba(241, 245, 249, 0.9);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 10px;
+            font-size: 18px;
+            transition: all 0.2s ease;
+            flex: 1;
+            height: 100%;
+            justify-content: center;
+            border-radius: 0;
+        }
+
+        body.light-mode .nav-item {
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            border-top: 3px solid var(--primary);
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 99;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            z-index: 150;
+            max-width: 300px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        body.light-mode .toast {
+            background: rgba(241, 245, 249, 0.95);
+            color: #0f172a;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        body.light-mode .empty-state {
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 15px; }
+            .datetime-display { grid-template-columns: repeat(2, 1fr); }
+            .progress-tracker { grid-template-columns: repeat(2, 1fr); }
+            .subjects-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <!-- WELCOME SCREEN -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-content">
+            <div class="welcome-icon">⏱️</div>
+            <h1 class="welcome-title">TimeFlow</h1>
+            <p class="welcome-subtitle">Master your studies, master your future</p>
+            
+            <form class="welcome-form" id="welcomeForm">
+                <div class="form-group">
+                    <label for="nameInput">What's your name?</label>
+                    <input type="text" id="nameInput" placeholder="Enter your name" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <span>Get Started</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP SCREEN -->
+    <div class="app-screen hidden" id="appScreen">
+        <!-- HEADER -->
+        <div class="app-header">
+            <div class="header-title" id="appTitle">Home</div>
+            <div class="header-controls">
+                <button class="icon-btn" id="themeToggle" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="icon-btn" id="settingsBtn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="content-wrapper">
+                <!-- DASHBOARD -->
+                <div class="view active" id="dashboardView">
+                    <div class="card greeting-card">
+                        <div class="greeting-text">Welcome, <span id="userName">Student</span> 👋</div>
+                        <div class="greeting-time" id="greetingTime"></div>
+                    </div>
+
+                    <div class="section-title">📅 Today's Info</div>
+                    <div class="datetime-display">
+                        <div class="datetime-card">
+                            <div class="datetime-label">Time</div>
+                            <div class="datetime-value" id="currentTime">00:00</div>
+                        </div>
+                        <div class="datetime-card">
+                            <div class="datetime-label">Date</div>
+                            <div class="datetime-value" id="currentDate">Mon 01</div>
+                        </div>
+                        <div class="datetime-card">
+                            <div class="datetime-label">Progress</div>
+                            <div class="datetime-value" id="dayProgress">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">📚 Topics This Period</div>
+                    <div class="card">
+                        <div style="font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 8px;" id="periodTime"></div>
+                        <div style="font-size: 18px; font-weight: 700; margin-bottom: 15px;" id="periodTitle">No topics scheduled</div>
+                        <div id="periodTopics"></div>
+                    </div>
+
+                    <div class="section-title">📊 Your Progress</div>
+                    <div class="progress-tracker">
+                        <div class="progress-item">
+                            <div class="progress-circle">0</div>
+                            <div class="progress-label">Completed</div>
+                            <div class="progress-value" id="completedPercent">0%</div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-circle">0</div>
+                            <div class="progress-label">Pending</div>
+                            <div class="progress-value" id="pendingPercent">0%</div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-circle" id="streakBadge">0</div>
+                            <div class="progress-label">Streak</div>
+                            <div class="progress-value" id="streakDays">0 days</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">✅ Today's Tasks</div>
+                    <div class="task-list" id="taskList">
+                        <div class="empty-state">📭 No tasks yet!</div>
+                    </div>
+                </div>
+
+                <!-- SUBJECTS -->
+                <div class="view" id="subjectsView">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="section-title" style="margin: 0;">📚 My Subjects</div>
+                        <button class="icon-btn" id="addSubjectBtn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="subjects-grid" id="subjectsGrid">
+                        <div class="empty-state">📚 No subjects yet!</div>
+                    </div>
+                </div>
+
+                <!-- TASKS -->
+                <div class="view" id="tasksView">
+                    <div class="section-title">✅ All Tasks</div>
+                    <div class="card">
+                        <input type="text" id="taskSearch" placeholder="Search tasks..." 
+                            style="width: 100%; padding: 10px; border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; background: rgba(15, 23, 42, 0.5); color: white;">
+                    </div>
+                    <div class="task-list" id="allTaskList">
+                        <div class="empty-state">📭 No tasks found!</div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS -->
+                <div class="view" id="settingsView">
+                    <div class="section-title">⚙️ Settings</div>
+                    <div class="card">
+                        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(99, 102, 241, 0.1);">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">Update Name</label>
+                            <input type="text" id="settingsName" placeholder="Enter your name" style="width: 100%; margin-bottom: 10px;">
+                            <button class="btn btn-primary" id="updateNameBtn">Update</button>
+                        </div>
+                        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(99, 102, 241, 0.1);">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">Export Data</label>
+                            <button class="btn btn-primary" id="exportBtn">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">Reset All</label>
+                            <button class="btn btn-primary" id="resetBtn" style="background: #ef4444;">
+                                <i class="fas fa-trash"></i> Delete All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAB -->
+        <button class="fab" id="addTaskBtn">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- BOTTOM NAV -->
+        <div class="bottom-nav">
+            <button class="nav-item active" data-view="dashboard">
+                <i class="fas fa-home"></i>
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-item" data-view="subjects">
+                <i class="fas fa-book"></i>
+                <span class="nav-label">Subjects</span>
+            </button>
+            <button class="nav-item" data-view="tasks">
+                <i class="fas fa-tasks"></i>
+                <span class="nav-label">Tasks</span>
+            </button>
+            <button class="nav-item" data-view="settings">
+                <i class="fas fa-cog"></i>
+                <span class="nav-label">Settings</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- TASK MODAL -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Task</h2>
+                <button class="modal-close" onclick="closeTaskModal()">×</button>
+            </div>
+            <form id="taskForm" onsubmit="saveTask(event)">
+                <div class="form-field">
+                    <label>Task Title</label>
+                    <input type="text" id="taskTitle" required>
+                </div>
+                <div class="form-field">
+                    <label>Start Time</label>
+                    <input type="time" id="taskStartTime">
+                </div>
+                <div class="form-field">
+                    <label>End Time</label>
+                    <input type="time" id="taskEndTime">
+                </div>
+                <div class="form-field">
+                    <label>Date</label>
+                    <input type="date" id="taskDate">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Task</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SUBJECT MODAL -->
+    <div class="modal" id="subjectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Subject</h2>
+                <button class="modal-close" onclick="closeSubjectModal()">×</button>
+            </div>
+            <form id="subjectForm" onsubmit="saveSubject(event)">
+                <div class="form-field">
+                    <label>Subject Name</label>
+                    <input type="text" id="subjectName" required>
+                </div>
+                <div class="form-field">
+                    <label>Icon</label>
+                    <input type="text" id="subjectIcon" placeholder="e.g., 📐" maxlength="2">
+                </div>
+                <button type="submit" class="btn btn-primary">Add Subject</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOPIC MODAL -->
+    <div class="modal" id="topicModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Topic</h2>
+                <button class="modal-close" onclick="closeTopicModal()">×</button>
+            </div>
+            <form id="topicForm" onsubmit="saveTopic(event)">
+                <div class="form-field">
+                    <label>Topic Name</label>
+                    <input type="text" id="topicName" required>
+                </div>
+                <div class="form-field">
+                    <label>Subject</label>
+                    <select id="topicSubject" required>
+                        <option value="">Select subject</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Complete By Time</label>
+                    <input type="time" id="topicTime">
+                </div>
+                <div class="form-field">
+                    <label>Date</label>
+                    <input type="date" id="topicDate">
+                </div>
+                <button type="submit" class="btn btn-primary">Add Topic</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // STATE
+        const state = {
+            user: { name: '', isDarkMode: true },
+            tasks: [],
+            subjects: [],
+            topics: []
+        };
+
+        // STORAGE
+        function saveState() {
+            localStorage.setItem('timeflow', JSON.stringify(state));
+            console.log('✅ Data saved to localStorage');
+        }
+
+        function loadState() {
+            const data = localStorage.getItem('timeflow');
+            if (data) {
+                const loaded = JSON.parse(data);
+                state.user = loaded.user || state.user;
+                state.tasks = loaded.tasks || [];
+                state.subjects = loaded.subjects || [];
+                state.topics = loaded.topics || [];
+                console.log('✅ Data loaded from localStorage');
+            }
+        }
+
+        // INIT
+        window.addEventListener('load', () => {
+            loadState();
+            
+            if (state.user.name) {
+                showApp();
+            } else {
+                showWelcome();
+            }
+            
+            setupListeners();
+            updateTime();
+            setInterval(updateTime, 1000);
+        });
+
+        function showWelcome() {
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            document.getElementById('appScreen').classList.add('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            document.getElementById('userName').textContent = state.user.name;
+            document.getElementById('appTitle').textContent = `Home · ${state.user.name}`;
+            document.getElementById('settingsName').value = state.user.name;
+            renderDashboard();
+        }
+
+        // EVENT LISTENERS
+        function setupListeners() {
+            // Welcome
+            document.getElementById('welcomeForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('nameInput').value.trim();
+                if (name) {
+                    state.user.name = name;
+                    saveState();
+                    showApp();
+                }
+            });
+
+            // Navbar - FIX
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const view = e.currentTarget.dataset.view;
+                    switchView(view);
+                });
+            });
+
+            // Tasks
+            document.getElementById('addTaskBtn').addEventListener('click', openTaskModal);
+            document.getElementById('taskForm').addEventListener('submit', saveTask);
+            document.getElementById('addSubjectBtn').addEventListener('click', openSubjectModal);
+            document.getElementById('subjectForm').addEventListener('submit', saveSubject);
+            document.getElementById('taskSearch').addEventListener('input', renderAllTasks);
+            document.getElementById('updateNameBtn').addEventListener('click', updateName);
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('resetBtn').addEventListener('click', resetData);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('settingsBtn').addEventListener('click', () => switchView('settings'));
+        }
+
+        // VIEW SWITCHING - FIX
+        function switchView(view) {
+            console.log('Switching to:', view);
+            
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            
+            // Show selected view
+            const viewElement = document.getElementById(view + 'View');
+            if (viewElement) {
+                viewElement.classList.add('active');
+            }
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-view="${view}"]`).classList.add('active');
+            
+            // Render content
+            if (view === 'dashboard') renderDashboard();
+            if (view === 'subjects') renderSubjects();
+            if (view === 'tasks') renderAllTasks();
+        }
+
+        // TIME
+        function updateTime() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${h}:${m}`;
+            
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            document.getElementById('currentDate').textContent = `${days[now.getDay()]} ${String(now.getDate()).padStart(2, '0')}`;
+            
+            const pct = Math.round((now.getHours() * 60 + now.getMinutes()) / (24 * 60) * 100);
+            document.getElementById('dayProgress').textContent = pct + '%';
+            
+            const hour = now.getHours();
+            const greeting = hour < 12 ? '☀️ Good morning!' : hour < 17 ? '🌤️ Good afternoon!' : '🌙 Good evening!';
+            document.getElementById('greetingTime').textContent = greeting;
+            
+            updatePeriodTopics();
+        }
+
+        function getCurrentPeriod() {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 12) return { name: 'Morning', icon: '🌅', start: 6, end: 12 };
+            if (hour >= 12 && hour < 17) return { name: 'Afternoon', icon: '☀️', start: 12, end: 17 };
+            if (hour >= 17 && hour < 21) return { name: 'Evening', icon: '🌆', start: 17, end: 21 };
+            return { name: 'Night', icon: '🌙', start: 21, end: 6 };
+        }
+
+        function updatePeriodTopics() {
+            const period = getCurrentPeriod();
+            const today = new Date().toDateString();
+            const periodTopics = state.topics.filter(t => {
+                if (!t.date) return false;
+                if (new Date(t.date).toDateString() !== today) return false;
+                const [h, m] = (t.time || '00:00').split(':').map(Number);
+                const tTime = h * 60 + m;
+                const now = new Date();
+                const curTime = now.getHours() * 60 + now.getMinutes();
+                return tTime > curTime;
+            });
+
+            document.getElementById('periodTime').textContent = `${period.icon} ${period.name} (${period.start}:00-${period.end}:00)`;
+            if (periodTopics.length === 0) {
+                document.getElementById('periodTitle').textContent = 'No topics scheduled';
+                document.getElementById('periodTopics').innerHTML = '';
+            } else {
+                const done = periodTopics.filter(t => t.done).length;
+                document.getElementById('periodTitle').textContent = `${done}/${periodTopics.length} Done`;
+                document.getElementById('periodTopics').innerHTML = periodTopics.map(t => {
+                    const subj = state.subjects.find(s => s.id === t.subjectId);
+                    return `
+                        <div style="display: flex; gap: 10px; padding: 10px; background: rgba(99, 102, 241, 0.05); border-radius: 8px; margin-bottom: 8px; cursor: pointer;" onclick="toggleTopicDone(${t.id})">
+                            <div style="width: 20px; height: 20px; border: 2px solid var(--primary); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; ${t.done ? 'background: var(--primary); color: white;' : ''}" >
+                                ${t.done ? '✓' : ''}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">${t.name}</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">${subj?.name || 'Unknown'} • ${t.time}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function toggleTopicDone(id) {
+            const topic = state.topics.find(t => t.id === id);
+            if (topic) {
+                topic.done = !topic.done;
+                saveState();
+                updatePeriodTopics();
+                renderSubjects();
+            }
+        }
+
+        // DASHBOARD
+        function renderDashboard() {
+            const today = new Date().toDateString();
+            const todayTasks = state.tasks.filter(t => new Date(t.date).toDateString() === today);
+            
+            const completed = todayTasks.filter(t => t.done).length;
+            const total = todayTasks.length;
+            
+            document.getElementById('completedPercent').textContent = total ? Math.round(completed / total * 100) + '%' : '0%';
+            document.getElementById('pendingPercent').textContent = total ? Math.round((total - completed) / total * 100) + '%' : '0%';
+            
+            const taskList = document.getElementById('taskList');
+            if (todayTasks.length === 0) {
+                taskList.innerHTML = '<div class="empty-state">📭 No tasks today!</div>';
+            } else {
+                taskList.innerHTML = todayTasks.map(t => `
+                    <div class="task-item">
+                        <div class="task-checkbox ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})">
+                            ${t.done ? '✓' : ''}
+                        </div>
+                        <div class="task-content">
+                            <div class="task-title" style="${t.done ? 'text-decoration: line-through;' : ''}">${t.title}</div>
+                            <div class="task-meta">⏰ ${t.start} - ${t.end}</div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="task-action-btn" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updatePeriodTopics();
+        }
+
+        function openTaskModal() {
+            document.getElementById('taskDate').valueAsDate = new Date();
+            document.getElementById('taskStartTime').value = '09:00';
+            document.getElementById('taskEndTime').value = '10:00';
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('active');
+        }
+
+        function saveTask(e) {
+            e.preventDefault();
+            const task = {
+                id: Date.now(),
+                title: document.getElementById('taskTitle').value,
+                start: document.getElementById('taskStartTime').value,
+                end: document.getElementById('taskEndTime').value,
+                date: document.getElementById('taskDate').value,
+                done: false
+            };
+            state.tasks.push(task);
+            saveState();
+            document.getElementById('taskForm').reset();
+            closeTaskModal();
+            renderDashboard();
+            renderAllTasks();
+        }
+
+        function toggleTask(id) {
+            const task = state.tasks.find(t => t.id === id);
+            if (task) {
+                task.done = !task.done;
+                saveState();
+                renderDashboard();
+            }
+        }
+
+        function deleteTask(id) {
+            state.tasks = state.tasks.filter(t => t.id !== id);
+            saveState();
+            renderDashboard();
+            renderAllTasks();
+        }
+
+        function renderAllTasks() {
+            const search = document.getElementById('taskSearch').value.toLowerCase();
+            let tasks = state.tasks.filter(t => t.title.toLowerCase().includes(search));
+            
+            const list = document.getElementById('allTaskList');
+            if (tasks.length === 0) {
+                list.innerHTML = '<div class="empty-state">📭 No tasks found!</div>';
+            } else {
+                list.innerHTML = tasks.map(t => `
+                    <div class="task-item">
+                        <div class="task-checkbox ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})">
+                            ${t.done ? '✓' : ''}
+                        </div>
+                        <div class="task-content">
+                            <div class="task-title" style="${t.done ? 'text-decoration: line-through;' : ''}">${t.title}</div>
+                            <div class="task-meta">📅 ${t.date} • ⏰ ${t.start} - ${t.end}</div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="task-action-btn" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // SUBJECTS
+        function openSubjectModal() {
+            document.getElementById('subjectModal').classList.add('active');
+        }
+
+        function closeSubjectModal() {
+            document.getElementById('subjectModal').classList.remove('active');
+        }
+
+        function saveSubject(e) {
+            e.preventDefault();
+            const subject = {
+                id: Date.now(),
+                name: document.getElementById('subjectName').value,
+                icon: document.getElementById('subjectIcon').value || '📚'
+            };
+            state.subjects.push(subject);
+            saveState();
+            document.getElementById('subjectForm').reset();
+            closeSubjectModal();
+            renderSubjects();
+            updateTopicSubjects();
+        }
+
+        function renderSubjects() {
+            const grid = document.getElementById('subjectsGrid');
+            if (state.subjects.length === 0) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;">📚 Create a subject!</div>';
+            } else {
+                grid.innerHTML = state.subjects.map(s => {
+                    const topics = state.topics.filter(t => t.subjectId === s.id);
+                    const done = topics.filter(t => t.done).length;
+                    return `
+                        <div class="subject-card">
+                            <div class="subject-header">
+                                <div class="subject-icon">${s.icon}</div>
+                                <button class="subject-menu" onclick="deleteSubject(${s.id})"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="subject-name">${s.name}</div>
+                            <div class="subject-stats">
+                                <div><div class="stat-label">Topics</div> <div class="stat-value">${topics.length}</div></div>
+                                <div><div class="stat-label">Done</div> <div class="stat-value">${done}</div></div>
+                            </div>
+                            <button class="btn btn-primary" onclick="openTopicModal(${s.id})" style="margin-top: 15px; width: 100%;">
+                                + Add Topic
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function deleteSubject(id) {
+            if (confirm('Delete this subject?')) {
+                state.subjects = state.subjects.filter(s => s.id !== id);
+                state.topics = state.topics.filter(t => t.subjectId !== id);
+                saveState();
+                renderSubjects();
+            }
+        }
+
+        // TOPICS
+        function openTopicModal(subjectId) {
+            document.getElementById('topicDate').valueAsDate = new Date();
+            document.getElementById('topicSubject').value = subjectId;
+            document.getElementById('topicModal').classList.add('active');
+        }
+
+        function closeTopicModal() {
+            document.getElementById('topicModal').classList.remove('active');
+        }
+
+        function saveTopic(e) {
+            e.preventDefault();
+            const topic = {
+                id: Date.now(),
+                name: document.getElementById('topicName').value,
+                subjectId: parseInt(document.getElementById('topicSubject').value),
+                time: document.getElementById('topicTime').value,
+                date: document.getElementById('topicDate').value,
+                done: false
+            };
+            state.topics.push(topic);
+            saveState();
+            document.getElementById('topicForm').reset();
+            closeTopicModal();
+            updatePeriodTopics();
+            renderSubjects();
+        }
+
+        function updateTopicSubjects() {
+            const select = document.getElementById('topicSubject');
+            select.innerHTML = '<option value="">Select subject</option>';
+            state.subjects.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        }
+
+        // SETTINGS
+        function updateName() {
+            const newName = document.getElementById('settingsName').value.trim();
+            if (newName) {
+                state.user.name = newName;
+                saveState();
+                document.getElementById('userName').textContent = newName;
+                document.getElementById('appTitle').textContent = `Home · ${newName}`;
+                showToast('Name updated!');
+            }
+        }
+
+        function exportData() {
+            const data = JSON.stringify(state, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'timeflow-backup.json';
+            a.click();
+            showToast('Data exported!');
+        }
+
+        function resetData() {
+            if (confirm('Delete ALL data? This cannot be undone!')) {
+                if (confirm('Are you sure?')) {
+                    localStorage.removeItem('timeflow');
+                    location.reload();
+                }
+            }
+        }
+
+        function toggleTheme() {
+            state.user.isDarkMode = !state.user.isDarkMode;
+            document.body.classList.toggle('light-mode');
+            document.body.classList.toggle('dark-mode');
+            saveState();
+        }
+
+        // TOAST
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i> ${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+    </script>
+</body>
+</html>
         /* ===== SCREENS ===== */
         .screen {
             position: fixed;
