@@ -1,1269 +1,649 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-<title>TimeFlow - Smart Study Planner</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-
-<meta name="theme-color" content="#6366f1">
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
--webkit-tap-highlight-color:transparent;
-}
-
-:root{
---primary:#6366f1;
---secondary:#ec4899;
---bg:#0f172a;
---card:#1e293b;
---text:#ffffff;
---muted:#94a3b8;
-}
-
-body{
-font-family:'Sora',sans-serif;
-background:var(--bg);
-color:var(--text);
-overflow-x:hidden;
-transition:.3s;
-}
-
-body.light{
---bg:#f8fafc;
---card:#ffffff;
---text:#0f172a;
---muted:#64748b;
-}
-
-.hidden{
-display:none !important;
-}
-
-/* WELCOME */
-
-.welcome{
-position:fixed;
-inset:0;
-display:flex;
-justify-content:center;
-align-items:center;
-padding:20px;
-background:linear-gradient(135deg,#6366f1,#ec4899);
-z-index:999;
-}
-
-.welcome-box{
-width:100%;
-max-width:400px;
-background:rgba(255,255,255,.12);
-backdrop-filter:blur(12px);
-padding:35px;
-border-radius:25px;
-text-align:center;
-}
-
-.logo{
-font-size:70px;
-margin-bottom:20px;
-}
-
-.welcome h1{
-font-size:40px;
-font-family:'Poppins';
-margin-bottom:10px;
-}
-
-.welcome p{
-opacity:.8;
-margin-bottom:25px;
-}
-
-.input{
-width:100%;
-padding:16px;
-border:none;
-border-radius:14px;
-background:rgba(255,255,255,.18);
-color:white;
-font-size:16px;
-margin-bottom:20px;
-outline:none;
-}
-
-.input::placeholder{
-color:rgba(255,255,255,.7);
-}
-
-.btn{
-width:100%;
-padding:15px;
-border:none;
-border-radius:14px;
-background:linear-gradient(135deg,#6366f1,#ec4899);
-color:white;
-font-size:16px;
-font-weight:700;
-cursor:pointer;
-transition:.3s;
-}
-
-.btn:active{
-transform:scale(.97);
-}
-
-/* APP */
-
-.app{
-min-height:100vh;
-padding-bottom:100px;
-}
-
-.header{
-position:sticky;
-top:0;
-z-index:100;
-padding:18px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-background:rgba(15,23,42,.9);
-backdrop-filter:blur(10px);
-}
-
-.light .header{
-background:rgba(255,255,255,.9);
-}
-
-.header-title{
-font-size:24px;
-font-weight:700;
-font-family:'Poppins';
-}
-
-.icon-btn{
-width:45px;
-height:45px;
-border:none;
-border-radius:14px;
-background:rgba(99,102,241,.15);
-color:var(--primary);
-font-size:18px;
-cursor:pointer;
-transition:.2s;
-}
-
-.icon-btn:active{
-transform:scale(.95);
-}
-
-.container{
-padding:18px;
-animation:fade .25s ease;
-}
-
-@keyframes fade{
-from{
-opacity:0;
-transform:translateY(8px);
-}
-to{
-opacity:1;
-transform:translateY(0);
-}
-}
-
-.card{
-background:var(--card);
-border-radius:22px;
-padding:20px;
-margin-bottom:18px;
-}
-
-.greeting{
-background:linear-gradient(135deg,#6366f1,#ec4899);
-}
-
-.greeting h1{
-font-size:28px;
-margin-bottom:10px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
-gap:15px;
-margin-top:18px;
-}
-
-.small-card{
-background:var(--card);
-padding:18px;
-border-radius:18px;
-text-align:center;
-}
-
-.small-card h3{
-font-size:13px;
-color:var(--muted);
-margin-bottom:8px;
-}
-
-.small-card p{
-font-size:24px;
-font-weight:700;
-color:var(--primary);
-}
-
-/* TASK */
-
-.task{
-display:flex;
-align-items:center;
-gap:14px;
-background:var(--card);
-padding:16px;
-border-radius:18px;
-margin-bottom:12px;
-}
-
-.checkbox{
-width:24px;
-height:24px;
-border:2px solid var(--primary);
-border-radius:8px;
-display:flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
-flex-shrink:0;
-}
-
-.checked{
-background:var(--primary);
-color:white;
-}
-
-.task-title{
-font-weight:700;
-font-size:15px;
-}
-
-.task-time{
-font-size:12px;
-color:var(--muted);
-margin-top:4px;
-}
-
-.empty{
-text-align:center;
-padding:30px;
-color:var(--muted);
-}
-
-/* NAVBAR */
-
-.bottom-nav{
-position:fixed;
-bottom:0;
-left:0;
-width:100%;
-height:80px;
-background:rgba(15,23,42,.96);
-backdrop-filter:blur(12px);
-display:flex;
-justify-content:space-around;
-align-items:center;
-z-index:100;
-}
-
-.light .bottom-nav{
-background:rgba(255,255,255,.95);
-}
-
-.nav-btn{
-border:none;
-background:none;
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:5px;
-color:#94a3b8;
-cursor:pointer;
-font-size:18px;
-transition:.2s;
-flex:1;
-height:100%;
-justify-content:center;
-}
-
-.nav-btn.active{
-color:var(--primary);
-border-top:3px solid var(--primary);
-}
-
-.nav-btn small{
-font-size:11px;
-}
-
-/* FAB */
-
-.fab{
-position:fixed;
-right:20px;
-bottom:95px;
-width:62px;
-height:62px;
-border:none;
-border-radius:50%;
-background:linear-gradient(135deg,#6366f1,#ec4899);
-color:white;
-font-size:24px;
-cursor:pointer;
-box-shadow:0 10px 25px rgba(99,102,241,.35);
-z-index:99;
-}
-
-/* MODAL */
-
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.55);
-display:none;
-justify-content:center;
-align-items:center;
-padding:20px;
-z-index:999;
-}
-
-.modal.active{
-display:flex;
-}
-
-.modal-content{
-width:100%;
-max-width:450px;
-background:var(--card);
-padding:25px;
-border-radius:25px;
-animation:fade .25s ease;
-}
-
-.modal-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
-
-.close{
-font-size:24px;
-cursor:pointer;
-}
-
-.modal-content input{
-width:100%;
-padding:15px;
-border:none;
-border-radius:14px;
-background:rgba(99,102,241,.08);
-color:var(--text);
-margin-bottom:15px;
-font-size:15px;
-outline:none;
-}
-
-/* SUBJECT */
-
-.subject{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:18px;
-border-radius:18px;
-background:var(--card);
-margin-bottom:12px;
-}
-
-.subject-left{
-display:flex;
-align-items:center;
-gap:15px;
-}
-
-.subject-icon{
-font-size:28px;
-}
-
-.subject-name{
-font-weight:700;
-}
-
-/* SETTINGS */
-
-.setting-btn{
-margin-bottom:15px;
-}
-
-/* MOBILE */
-
-@media(max-width:500px){
-
-.greeting h1{
-font-size:22px;
-}
-
-.header-title{
-font-size:20px;
-}
-
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura | Premium Task Management</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            /* Light Theme Palette */
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.5);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --glass: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --card-radius: 24px;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --glass: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-main);
+            overflow: hidden; /* Controlled by JS during splash */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- UI Components --- */
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            padding-bottom: 90px;
+            overflow-y: auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Splash & Onboarding */
+        #splash-screen {
+            display: flex;
+            background: radial-gradient(circle at center, var(--accent), #4338ca);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+
+        .loader-ring {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.2);
+        }
+
+        /* Dashboard Specifics */
+        .header-section {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .welcome-text { font-size: 24px; font-weight: 800; }
+        .date-text { font-size: 14px; color: var(--text-muted); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+        }
+
+        .stat-value { font-size: 22px; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Progress Circle */
+        .progress-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+        }
+
+        circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .bg-circle { stroke: var(--glass-border); }
+        .progress-bar { 
+            stroke: var(--accent); 
+            stroke-dasharray: 283;
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            height: 70px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 35px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            border: 1px solid var(--glass-border);
+        }
+
+        .nav-item {
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        /* Task List */
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 12px;
+            background: var(--bg-secondary);
+            border-radius: 18px;
+            transition: var(--transition);
+        }
+
+        .task-item.completed { opacity: 0.6; text-decoration: line-through; }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            margin-right: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checkbox.checked { background: var(--accent); color: white; }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 110px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: var(--accent);
+            border-radius: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            box-shadow: 0 10px 20px var(--accent-glow);
+            cursor: pointer;
+            z-index: 999;
+            transition: var(--transition);
+        }
+
+        .fab:hover { transform: scale(1.1) rotate(90deg); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            width: 90%;
+            max-width: 500px;
+            border-radius: var(--card-radius);
+            padding: 30px;
+            animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalIn { from { transform: scale(0.8); opacity: 0; } }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--bg-primary);
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        #analytics-chart { max-height: 200px; }
+
+    </style>
 </head>
-
 <body>
 
-<!-- WELCOME -->
-
-<div class="welcome" id="welcomeScreen">
-
-<div class="welcome-box">
-
-<div class="logo">⏱️</div>
-
-<h1>TimeFlow</h1>
-
-<p>Master your studies with smart planning</p>
-
-<form id="welcomeForm">
-
-<input type="text"
-class="input"
-id="nameInput"
-placeholder="Enter your name"
-required>
-
-<button class="btn">
-Get Started
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-<!-- APP -->
-
-<div class="app hidden" id="app">
-
-<div class="header">
-
-<div class="header-title" id="headerTitle">
-Home
-</div>
-
-<button class="icon-btn" id="themeBtn">
-<i class="fas fa-moon"></i>
-</button>
-
-</div>
-
-<div class="container" id="mainContainer">
-
-</div>
-
-<button class="fab" id="addTaskBtn">
-+
-</button>
-
-<div class="bottom-nav">
-
-<button class="nav-btn active" data-view="home">
-<i class="fas fa-home"></i>
-<small>Home</small>
-</button>
-
-<button class="nav-btn" data-view="subjects">
-<i class="fas fa-book"></i>
-<small>Subjects</small>
-</button>
-
-<button class="nav-btn" data-view="tasks">
-<i class="fas fa-tasks"></i>
-<small>Tasks</small>
-</button>
-
-<button class="nav-btn" data-view="settings">
-<i class="fas fa-cog"></i>
-<small>Settings</small>
-</button>
-
-</div>
-
-</div>
-
-<!-- TASK MODAL -->
-
-<div class="modal" id="taskModal">
-
-<div class="modal-content">
-
-<div class="modal-header">
-
-<h2>Add Task</h2>
-
-<div class="close" id="closeTaskModal">
-×
-</div>
-
-</div>
-
-<form id="taskForm">
-
-<input type="text"
-id="taskTitle"
-placeholder="Task title"
-required>
-
-<input type="time"
-id="taskTime"
-required>
-
-<button class="btn">
-Save Task
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-<script>
-
-/* =========================
-STATE
-========================= */
-
-const state = {
-user:{
-name:"",
-dark:true
-},
-tasks:[],
-subjects:["Mathematics","Physics"],
-currentView:"home"
-};
-
-/* =========================
-STORAGE
-========================= */
-
-function saveData(){
-localStorage.setItem(
-"timeflow-data",
-JSON.stringify(state)
-);
-}
-
-function loadData(){
-
-const data =
-localStorage.getItem("timeflow-data");
-
-if(data){
-
-const parsed = JSON.parse(data);
-
-state.user = parsed.user || state.user;
-state.tasks = parsed.tasks || [];
-state.subjects = parsed.subjects || [];
-state.currentView = parsed.currentView || "home";
-
-}
-
-}
-
-/* =========================
-ELEMENTS
-========================= */
-
-const app = document.getElementById("app");
-const welcome = document.getElementById("welcomeScreen");
-const container = document.getElementById("mainContainer");
-
-/* =========================
-INIT
-========================= */
-
-window.addEventListener("load",()=>{
-
-loadData();
-
-applyTheme();
-
-setupNavbar();
-
-setupEvents();
-
-if(state.user.name){
-showApp();
-}else{
-showWelcome();
-}
-
-updateClock();
-
-setInterval(updateClock,1000);
-
-});
-
-/* =========================
-SHOW APP
-========================= */
-
-function showWelcome(){
-
-welcome.classList.remove("hidden");
-app.classList.add("hidden");
-
-}
-
-function showApp(){
-
-welcome.classList.add("hidden");
-app.classList.remove("hidden");
-
-switchView(state.currentView);
-
-}
-
-/* =========================
-LOGIN
-========================= */
-
-document.getElementById("welcomeForm")
-.addEventListener("submit",(e)=>{
-
-e.preventDefault();
-
-const name =
-document.getElementById("nameInput")
-.value.trim();
-
-if(!name) return;
-
-state.user.name = name;
-
-saveData();
-
-showApp();
-
-});
-
-/* =========================
-NAVBAR FIX
-========================= */
-
-function setupNavbar(){
-
-document.querySelectorAll(".nav-btn")
-.forEach(btn=>{
-
-btn.addEventListener("click",()=>{
-
-const view = btn.dataset.view;
-
-switchView(view);
-
-});
-
-});
-
-}
-
-function switchView(view){
-
-state.currentView = view;
-
-saveData();
-
-document.querySelectorAll(".nav-btn")
-.forEach(btn=>{
-
-btn.classList.remove("active");
-
-if(btn.dataset.view === view){
-btn.classList.add("active");
-}
-
-});
-
-document.getElementById("headerTitle")
-.innerText =
-view.charAt(0).toUpperCase() +
-view.slice(1);
-
-renderView(view);
-
-}
-
-/* =========================
-RENDER VIEW
-========================= */
-
-function renderView(view){
-
-if(view === "home"){
-renderHome();
-}
-
-if(view === "subjects"){
-renderSubjects();
-}
-
-if(view === "tasks"){
-renderTasksView();
-}
-
-if(view === "settings"){
-renderSettings();
-}
-
-}
-
-/* =========================
-HOME
-========================= */
-
-function renderHome(){
-
-container.innerHTML = `
-
-<div class="card greeting">
-
-<h1>
-Welcome, ${state.user.name} 👋
-</h1>
-
-<p>
-${getGreeting()}
-</p>
-
-</div>
-
-<div class="grid">
-
-<div class="small-card">
-<h3>TIME</h3>
-<p id="timeBox">
-${getTime()}
-</p>
-</div>
-
-<div class="small-card">
-<h3>DATE</h3>
-<p>
-${new Date().toDateString().slice(0,10)}
-</p>
-</div>
-
-<div class="small-card">
-<h3>TASKS</h3>
-<p>
-${state.tasks.length}
-</p>
-</div>
-
-</div>
-
-<h3 style="margin:25px 0 15px">
-Today's Tasks
-</h3>
-
-<div id="homeTasks"></div>
-
-`;
-
-renderHomeTasks();
-
-}
-
-/* =========================
-HOME TASKS
-========================= */
-
-function renderHomeTasks(){
-
-const list =
-document.getElementById("homeTasks");
-
-if(!list) return;
-
-if(state.tasks.length === 0){
-
-list.innerHTML = `
-<div class="empty">
-📭 No Tasks Added
-</div>
-`;
-
-return;
-
-}
-
-list.innerHTML = state.tasks.map(task=>`
-
-<div class="task">
-
-<div class="checkbox
-${task.done ? 'checked':''}"
-onclick="toggleTask(${task.id})">
-
-${task.done ? '✓':''}
-
-</div>
-
-<div style="flex:1">
-
-<div class="task-title"
-style="
-${task.done ? 'text-decoration:line-through;opacity:.6':''}
-">
-
-${task.title}
-
-</div>
-
-<div class="task-time">
-⏰ ${task.time}
-</div>
-
-</div>
-
-<button class="icon-btn"
-onclick="deleteTask(${task.id})">
-
-<i class="fas fa-trash"></i>
-
-</button>
-
-</div>
-
-`).join("");
-
-}
-
-/* =========================
-TASK VIEW
-========================= */
-
-function renderTasksView(){
-
-container.innerHTML = `
-
-<div id="allTasks"></div>
-
-`;
-
-const allTasks =
-document.getElementById("allTasks");
-
-if(state.tasks.length === 0){
-
-allTasks.innerHTML = `
-<div class="empty">
-No Tasks Added
-</div>
-`;
-
-return;
-
-}
-
-allTasks.innerHTML = state.tasks.map(task=>`
-
-<div class="task">
-
-<div class="checkbox
-${task.done ? 'checked':''}"
-onclick="toggleTask(${task.id})">
-
-${task.done ? '✓':''}
-
-</div>
-
-<div style="flex:1">
-
-<div class="task-title"
-style="
-${task.done ? 'text-decoration:line-through;opacity:.6':''}
-">
-
-${task.title}
-
-</div>
-
-<div class="task-time">
-⏰ ${task.time}
-</div>
-
-</div>
-
-<button class="icon-btn"
-onclick="deleteTask(${task.id})">
-
-<i class="fas fa-trash"></i>
-
-</button>
-
-</div>
-
-`).join("");
-
-}
-
-/* =========================
-SUBJECTS
-========================= */
-
-function renderSubjects(){
-
-container.innerHTML = `
-
-<div>
-
-<button class="btn"
-style="margin-bottom:18px"
-onclick="addSubject()">
-
-+ Add Subject
-
-</button>
-
-<div id="subjectsList"></div>
-
-</div>
-
-`;
-
-const list =
-document.getElementById("subjectsList");
-
-list.innerHTML = state.subjects.map(subject=>`
-
-<div class="subject">
-
-<div class="subject-left">
-
-<div class="subject-icon">
-📘
-</div>
-
-<div class="subject-name">
-${subject}
-</div>
-
-</div>
-
-<button class="icon-btn"
-onclick="deleteSubject('${subject}')">
-
-<i class="fas fa-trash"></i>
-
-</button>
-
-</div>
-
-`).join("");
-
-}
-
-/* =========================
-SETTINGS
-========================= */
-
-function renderSettings(){
-
-container.innerHTML = `
-
-<div class="card">
-
-<button class="btn setting-btn"
-onclick="toggleTheme()">
-
-Toggle Theme
-
-</button>
-
-<button class="btn setting-btn"
-onclick="exportData()">
-
-Export Data
-
-</button>
-
-<button class="btn"
-style="background:#ef4444"
-onclick="resetApp()">
-
-Delete All Data
-
-</button>
-
-</div>
-
-`;
-
-}
-
-/* =========================
-EVENTS
-========================= */
-
-function setupEvents(){
-
-document.getElementById("addTaskBtn")
-.addEventListener("click",()=>{
-
-document.getElementById("taskModal")
-.classList.add("active");
-
-});
-
-document.getElementById("closeTaskModal")
-.addEventListener("click",()=>{
-
-document.getElementById("taskModal")
-.classList.remove("active");
-
-});
-
-document.getElementById("taskForm")
-.addEventListener("submit",saveTask);
-
-}
-
-/* =========================
-SAVE TASK
-========================= */
-
-function saveTask(e){
-
-e.preventDefault();
-
-const title =
-document.getElementById("taskTitle").value;
-
-const time =
-document.getElementById("taskTime").value;
-
-state.tasks.push({
-id:Date.now(),
-title,
-time,
-done:false
-});
-
-saveData();
-
-document.getElementById("taskForm")
-.reset();
-
-document.getElementById("taskModal")
-.classList.remove("active");
-
-renderView(state.currentView);
-
-}
-
-/* =========================
-TASK ACTIONS
-========================= */
-
-function toggleTask(id){
-
-const task =
-state.tasks.find(t=>t.id===id);
-
-if(!task) return;
-
-task.done = !task.done;
-
-saveData();
-
-renderView(state.currentView);
-
-}
-
-function deleteTask(id){
-
-state.tasks =
-state.tasks.filter(t=>t.id!==id);
-
-saveData();
-
-renderView(state.currentView);
-
-}
-
-/* =========================
-SUBJECT ACTIONS
-========================= */
-
-function addSubject(){
-
-const name =
-prompt("Enter subject name");
-
-if(!name) return;
-
-state.subjects.push(name);
-
-saveData();
-
-renderSubjects();
-
-}
-
-function deleteSubject(name){
-
-state.subjects =
-state.subjects.filter(s=>s!==name);
-
-saveData();
-
-renderSubjects();
-
-}
-
-/* =========================
-THEME
-========================= */
-
-function toggleTheme(){
-
-state.user.dark = !state.user.dark;
-
-applyTheme();
-
-saveData();
-
-}
-
-function applyTheme(){
-
-if(state.user.dark){
-
-document.body.classList.remove("light");
-
-}else{
-
-document.body.classList.add("light");
-
-}
-
-}
-
-/* =========================
-EXPORT
-========================= */
-
-function exportData(){
-
-const data =
-JSON.stringify(state,null,2);
-
-const blob =
-new Blob([data],{
-type:"application/json"
-});
-
-const url =
-URL.createObjectURL(blob);
-
-const a =
-document.createElement("a");
-
-a.href = url;
-
-a.download = "timeflow-backup.json";
-
-a.click();
-
-}
-
-/* =========================
-RESET
-========================= */
-
-function resetApp(){
-
-if(!confirm("Delete all app data?"))
-return;
-
-localStorage.removeItem("timeflow-data");
-
-location.reload();
-
-}
-
-/* =========================
-TIME
-========================= */
-
-function updateClock(){
-
-const timeBox =
-document.getElementById("timeBox");
-
-if(timeBox){
-timeBox.innerText = getTime();
-}
-
-}
-
-function getTime(){
-
-const now = new Date();
-
-return now.toLocaleTimeString([],{
-hour:'2-digit',
-minute:'2-digit'
-});
-
-}
-
-function getGreeting(){
-
-const hour =
-new Date().getHours();
-
-if(hour < 12){
-return "☀️ Good Morning";
-}
-
-if(hour < 17){
-return "🌤️ Good Afternoon";
-}
-
-return "🌙 Good Evening";
-
-}
-
-</script>
-
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div style="text-align: center;">
+            <i data-lucide="layers" style="width: 60px; height: 60px; margin-bottom: 20px;"></i>
+            <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -2px;">AURA</h1>
+            <p style="opacity: 0.8; margin-bottom: 30px;">Your Future, Organized.</p>
+            <div class="loader-ring"></div>
+        </div>
+    </div>
+
+    <!-- Onboarding / Name Input -->
+    <div id="onboarding-screen" class="screen" style="justify-content: center; align-items: center; text-align: center; background: var(--bg-primary);">
+        <div class="glass-card" style="width: 100%; max-width: 400px;">
+            <h2 style="margin-bottom: 10px;">What should we call you?</h2>
+            <input type="text" id="user-name-input" placeholder="Enter your name..." style="text-align: center; font-size: 1.2rem;">
+            <button class="btn" onclick="app.finishOnboarding()">Get Started <i data-lucide="arrow-right" style="vertical-align: middle; margin-left: 5px;"></i></button>
+        </div>
+    </div>
+
+    <!-- Main App Layout -->
+    <div id="app-container" style="display: none;">
+        
+        <!-- Dashboard Screen -->
+        <div id="home" class="screen active">
+            <div class="header-section">
+                <p id="live-clock" style="font-weight: 700; color: var(--accent);"></p>
+                <h1 class="welcome-text">Hi, <span id="display-name">User</span> 👋</h1>
+                <p class="date-text" id="display-date"></p>
+            </div>
+
+            <div class="glass-card">
+                <div class="progress-container">
+                    <svg width="120" height="120">
+                        <circle class="bg-circle" cx="60" cy="60" r="45"></circle>
+                        <circle id="circle-progress" class="progress-bar" cx="60" cy="60" r="45"></circle>
+                    </svg>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <span id="prod-percent" style="font-weight: 800; font-size: 1.2rem;">0%</span>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="stat-value" id="count-done">0</p>
+                        <p class="stat-label">Done</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-value" id="count-pending">0</p>
+                        <p class="stat-label">Left</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="background: linear-gradient(135deg, var(--accent), #4338ca); color: white;">
+                <p style="font-style: italic; opacity: 0.9;" id="quote">"Focus on being productive instead of busy."</p>
+            </div>
+
+            <h3 style="margin-bottom: 15px;">Focusing on Today</h3>
+            <div id="dashboard-tasks">
+                <!-- Task items injected here -->
+            </div>
+        </div>
+
+        <!-- Tasks Screen -->
+        <div id="tasks" class="screen">
+            <div class="header-section">
+                <h1>Daily Agenda</h1>
+                <input type="text" id="task-search" placeholder="Search tasks..." oninput="app.renderTasks()">
+            </div>
+            <div id="main-task-list"></div>
+        </div>
+
+        <!-- Analytics Screen -->
+        <div id="analytics" class="screen">
+            <h1>Analytics</h1>
+            <div class="glass-card">
+                <canvas id="analytics-chart"></canvas>
+            </div>
+            <div class="glass-card">
+                <h3>Insights</h3>
+                <p id="insight-text" style="color: var(--text-muted); margin-top: 10px;">Keep completing tasks to see your productivity trends!</p>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings" class="screen">
+            <h1>Settings</h1>
+            <div class="glass-card">
+                <label>Appearance</label>
+                <button class="btn" style="background: var(--bg-secondary); color: var(--text-main); border: 1px solid var(--glass-border);" onclick="app.toggleTheme()">
+                    <i data-lucide="moon"></i> Toggle Dark Mode
+                </button>
+                
+                <label style="display: block; margin-top: 20px;">Data Management</label>
+                <button class="btn" style="background: #ef4444;" onclick="app.resetApp()">Reset All Data</button>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" onclick="app.navigate('home', this)">
+                <i data-lucide="home"></i>
+            </div>
+            <div class="nav-item" onclick="app.navigate('tasks', this)">
+                <i data-lucide="check-square"></i>
+            </div>
+            <div class="nav-item" onclick="app.navigate('analytics', this)">
+                <i data-lucide="bar-chart-3"></i>
+            </div>
+            <div class="nav-item" onclick="app.navigate('settings', this)">
+                <i data-lucide="settings"></i>
+            </div>
+        </nav>
+
+        <!-- FAB -->
+        <div class="fab" onclick="app.openModal()">
+            <i data-lucide="plus"></i>
+        </div>
+
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal">
+            <h3>Create New Task</h3>
+            <input type="text" id="new-task-title" placeholder="What needs to be done?">
+            <select id="new-task-priority">
+                <option value="low">Low Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="high">High Priority</option>
+            </select>
+            <div style="display: flex; gap: 10px;">
+                <input type="time" id="new-task-time">
+            </div>
+            <button class="btn" onclick="app.addTask()">Save Task</button>
+            <button class="btn" style="background: transparent; color: var(--text-muted);" onclick="app.closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <audio id="complete-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+
+    <script>
+        // Core App Logic
+        const app = {
+            user: {
+                name: localStorage.getItem('aura_user_name') || '',
+                tasks: JSON.parse(localStorage.getItem('aura_tasks')) || [],
+                theme: localStorage.getItem('aura_theme') || 'light'
+            },
+
+            init() {
+                lucide.createIcons();
+                this.applyTheme();
+                this.updateTime();
+                setInterval(() => this.updateTime(), 1000);
+
+                // Handle Boot Flow
+                setTimeout(() => {
+                    document.getElementById('splash-screen').style.display = 'none';
+                    if (!this.user.name) {
+                        document.getElementById('onboarding-screen').classList.add('active');
+                    } else {
+                        this.launchMainApp();
+                    }
+                }, 2500);
+            },
+
+            launchMainApp() {
+                document.getElementById('onboarding-screen').classList.remove('active');
+                document.getElementById('app-container').style.display = 'block';
+                document.getElementById('display-name').innerText = this.user.name;
+                this.renderTasks();
+                this.initChart();
+            },
+
+            finishOnboarding() {
+                const nameInput = document.getElementById('user-name-input').value;
+                if (nameInput.trim()) {
+                    this.user.name = nameInput;
+                    localStorage.setItem('aura_user_name', nameInput);
+                    this.launchMainApp();
+                }
+            },
+
+            updateTime() {
+                const now = new Date();
+                const clock = document.getElementById('live-clock');
+                const dateDisplay = document.getElementById('display-date');
+                if(clock) clock.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                if(dateDisplay) dateDisplay.innerText = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+            },
+
+            navigate(screenId, el) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                document.getElementById(screenId).classList.add('active');
+                el.classList.add('active');
+            },
+
+            openModal() {
+                document.getElementById('task-modal').style.display = 'flex';
+            },
+
+            closeModal() {
+                document.getElementById('task-modal').style.display = 'none';
+            },
+
+            addTask() {
+                const title = document.getElementById('new-task-title').value;
+                const priority = document.getElementById('new-task-priority').value;
+                const time = document.getElementById('new-task-time').value;
+
+                if (!title) return;
+
+                const newTask = {
+                    id: Date.now(),
+                    title,
+                    priority,
+                    time,
+                    completed: false,
+                    date: new Date().toLocaleDateString()
+                };
+
+                this.user.tasks.push(newTask);
+                this.saveTasks();
+                this.renderTasks();
+                this.closeModal();
+                
+                // Clear inputs
+                document.getElementById('new-task-title').value = '';
+            },
+
+            toggleTask(id) {
+                const task = this.user.tasks.find(t => t.id === id);
+                task.completed = !task.completed;
+                if(task.completed) document.getElementById('complete-sound').play();
+                this.saveTasks();
+                this.renderTasks();
+            },
+
+            deleteTask(id) {
+                this.user.tasks = this.user.tasks.filter(t => t.id !== id);
+                this.saveTasks();
+                this.renderTasks();
+            },
+
+            saveTasks() {
+                localStorage.setItem('aura_tasks', JSON.stringify(this.user.tasks));
+                this.updateStats();
+            },
+
+            renderTasks() {
+                const searchTerm = document.getElementById('task-search')?.value.toLowerCase() || '';
+                const taskContainers = ['dashboard-tasks', 'main-task-list'];
+                
+                taskContainers.forEach(containerId => {
+                    const container = document.getElementById(containerId);
+                    if(!container) return;
+                    
+                    container.innerHTML = '';
+                    
+                    const filtered = this.user.tasks.filter(t => t.title.toLowerCase().includes(searchTerm));
+                    
+                    if(filtered.length === 0) {
+                        container.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">
+                            <i data-lucide="coffee" style="width:40px; height:40px; margin-bottom:10px;"></i>
+                            <p>All clear!</p>
+                        </div>`;
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    filtered.forEach(task => {
+                        const item = document.createElement('div');
+                        item.className = `task-item ${task.completed ? 'completed' : ''}`;
+                        item.innerHTML = `
+                            <div class="checkbox ${task.completed ? 'checked' : ''}" onclick="app.toggleTask(${task.id})">
+                                ${task.completed ? '<i data-lucide="check" style="width:16px;"></i>' : ''}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${task.title}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${task.time || 'No time'} • ${task.priority}</div>
+                            </div>
+                            <i data-lucide="trash-2" style="width:18px; color: #ef4444; cursor:pointer;" onclick="app.deleteTask(${task.id})"></i>
+                        `;
+                        container.appendChild(item);
+                    });
+                });
+                lucide.createIcons();
+                this.updateStats();
+            },
+
+            updateStats() {
+                const total = this.user.tasks.length;
+                const done = this.user.tasks.filter(t => t.completed).length;
+                const pending = total - done;
+                const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+                document.getElementById('count-done').innerText = done;
+                document.getElementById('count-pending').innerText = pending;
+                document.getElementById('prod-percent').innerText = percent + '%';
+                
+                const circle = document.getElementById('circle-progress');
+                if(circle) {
+                    const offset = 283 - (283 * percent) / 100;
+                    circle.style.strokeDashoffset = offset;
+                }
+            },
+
+            toggleTheme() {
+                this.user.theme = this.user.theme === 'light' ? 'dark' : 'light';
+                localStorage.setItem('aura_theme', this.user.theme);
+                this.applyTheme();
+            },
+
+            applyTheme() {
+                document.body.setAttribute('data-theme', this.user.theme);
+            },
+
+            initChart() {
+                const ctx = document.getElementById('analytics-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Productivity',
+                            data: [65, 59, 80, 81, 56, 55, 40],
+                            borderColor: '#6366f1',
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)'
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: { y: { display: false }, x: { grid: { display: false } } }
+                    }
+                });
+            },
+
+            resetApp() {
+                if(confirm('Delete all data? This cannot be undone.')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+        };
+
+        window.onload = () => app.init();
+    </script>
 </body>
 </html>
