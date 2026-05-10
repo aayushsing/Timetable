@@ -1723,14 +1723,24 @@
         function initialize() {
             storage.load();
             setupTheme();
-            setupEventListeners();
             
-            if (app.user.name) {
-                showAppScreen();
+            // Check if user exists
+            if (app.user.name && app.user.name.length > 0) {
+                // Show app screen
+                document.getElementById('welcomeScreen').classList.remove('active');
+                document.getElementById('appScreen').classList.add('active');
+                document.getElementById('userNameDisplay').textContent = app.user.name;
+                document.getElementById('settingsNameInput').value = app.user.name;
+                document.getElementById('appTitle').textContent = `Home · ${app.user.name}`;
                 renderDashboard();
+                updateDateTime();
             } else {
-                showWelcomeScreen();
+                // Show welcome screen
+                document.getElementById('welcomeScreen').classList.add('active');
+                document.getElementById('appScreen').classList.remove('active');
             }
+            
+            setupEventListeners();
         }
 
         // ===== THEME MANAGEMENT =====
@@ -1757,37 +1767,54 @@
         }
 
         // ===== SCREEN MANAGEMENT =====
-        function showWelcomeScreen() {
-            document.getElementById('welcomeScreen').classList.add('active');
-            document.getElementById('appScreen').classList.remove('active');
-        }
-
-        function showAppScreen() {
-            document.getElementById('welcomeScreen').classList.remove('active');
-            document.getElementById('appScreen').classList.add('active');
-        }
+        // Screens are managed through CSS classes (active/inactive)
 
         function switchView(viewName) {
-            document.querySelectorAll('[id$="View"]').forEach(el => {
-                el.classList.add('hidden');
-            });
-            document.getElementById(viewName + 'View').classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
-            
-            app.currentView = viewName;
-            
-            if (viewName === 'calendar') {
-                renderCalendar();
-            } else if (viewName === 'tasks') {
-                renderAllTasks();
-            } else if (viewName === 'analytics') {
-                renderAnalytics();
-            } else if (viewName === 'settings') {
-                updateSettingsForm();
+            try {
+                // Hide all views
+                const views = {
+                    'dashboard': document.getElementById('dashboard'),
+                    'calendar': document.getElementById('calendarView'),
+                    'tasks': document.getElementById('tasksView'),
+                    'analytics': document.getElementById('analyticsView'),
+                    'settings': document.getElementById('settingsView')
+                };
+                
+                Object.values(views).forEach(view => {
+                    if (view) view.classList.add('hidden');
+                });
+                
+                // Show selected view
+                if (views[viewName]) {
+                    views[viewName].classList.remove('hidden');
+                    
+                    // Render appropriate content
+                    if (viewName === 'dashboard') {
+                        renderDashboard();
+                    } else if (viewName === 'calendar') {
+                        renderCalendar();
+                    } else if (viewName === 'tasks') {
+                        renderAllTasks();
+                    } else if (viewName === 'analytics') {
+                        renderAnalytics();
+                    } else if (viewName === 'settings') {
+                        updateSettingsForm();
+                    }
+                }
+                
+                // Update nav items
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                const activeNav = document.querySelector(`[data-view="${viewName}"]`);
+                if (activeNav) {
+                    activeNav.classList.add('active');
+                }
+                
+                app.currentView = viewName;
+                
+            } catch (error) {
+                console.error('Error switching view:', error);
             }
         }
 
@@ -1867,16 +1894,38 @@
         // ===== WELCOME HANDLER =====
         function handleWelcomeSubmit(e) {
             e.preventDefault();
-            const name = document.getElementById('nameInput').value.trim();
-            if (name) {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+            
+            if (!name || name.length === 0) {
+                alert('Please enter your name to continue');
+                return;
+            }
+            
+            try {
+                // Save user data
                 app.user.name = name;
                 app.user.joinDate = new Date();
                 app.user.lastActiveDate = new Date().toDateString();
                 storage.save();
-                showAppScreen();
-                renderDashboard();
+                
+                // Transition screens using classes
+                document.getElementById('welcomeScreen').classList.remove('active');
+                document.getElementById('appScreen').classList.add('active');
+                
+                // Update displays
                 document.getElementById('userNameDisplay').textContent = name;
                 document.getElementById('settingsNameInput').value = name;
+                
+                // Render dashboard after transition
+                setTimeout(() => {
+                    renderDashboard();
+                    updateDateTime();
+                }, 400);
+                
+            } catch (error) {
+                console.error('Error during welcome:', error);
+                alert('An error occurred. Please try again.');
             }
         }
 
@@ -1946,61 +1995,114 @@
         function handleTaskSubmit(e) {
             e.preventDefault();
             
-            const task = {
-                id: app.editingTaskId || Date.now(),
-                title: document.getElementById('taskTitle').value,
-                category: document.getElementById('taskCategory').value,
-                startTime: document.getElementById('taskStartTime').value,
-                endTime: document.getElementById('taskEndTime').value,
-                priority: document.getElementById('taskPriority').value,
-                date: new Date(document.getElementById('taskDate').value),
-                notes: document.getElementById('taskNotes').value,
-                completed: app.editingTaskId ? 
-                    app.tasks.find(t => t.id === app.editingTaskId).completed : false,
-                createdAt: app.editingTaskId ?
-                    app.tasks.find(t => t.id === app.editingTaskId).createdAt : new Date()
-            };
-            
-            if (app.editingTaskId) {
-                const index = app.tasks.findIndex(t => t.id === app.editingTaskId);
-                app.tasks[index] = task;
-            } else {
-                app.tasks.push(task);
+            try {
+                const taskTitle = document.getElementById('taskTitle').value;
+                if (!taskTitle.trim()) {
+                    showToast('Please enter a task title', 'error');
+                    return;
+                }
+                
+                const task = {
+                    id: app.editingTaskId || Date.now(),
+                    title: taskTitle,
+                    category: document.getElementById('taskCategory').value || '',
+                    startTime: document.getElementById('taskStartTime').value || '09:00',
+                    endTime: document.getElementById('taskEndTime').value || '10:00',
+                    priority: document.getElementById('taskPriority').value || 'medium',
+                    date: new Date(document.getElementById('taskDate').value),
+                    notes: document.getElementById('taskNotes').value || '',
+                    completed: app.editingTaskId ? 
+                        app.tasks.find(t => t.id === app.editingTaskId)?.completed : false,
+                    createdAt: app.editingTaskId ?
+                        app.tasks.find(t => t.id === app.editingTaskId)?.createdAt : new Date()
+                };
+                
+                if (app.editingTaskId) {
+                    const index = app.tasks.findIndex(t => t.id === app.editingTaskId);
+                    if (index !== -1) {
+                        app.tasks[index] = task;
+                        showToast('Task updated successfully!', 'success');
+                    }
+                } else {
+                    app.tasks.push(task);
+                    showToast('Task added successfully!', 'success');
+                }
+                
+                // Save to localStorage
+                storage.save();
+                
+                // Close modal
+                closeTaskModal();
+                
+                // Refresh all views
+                setTimeout(() => {
+                    renderDashboard();
+                    renderAllTasks();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error submitting task:', error);
+                showToast('Error saving task', 'error');
             }
-            
-            storage.save();
-            closeTaskModal();
-            renderDashboard();
-            renderAllTasks();
-            showToast('Task saved successfully!', 'success');
         }
 
         // ===== TASK RENDERING =====
         function renderDashboard() {
-            // Update header
-            document.getElementById('appTitle').textContent = `Home · ${app.user.name}`;
-            document.getElementById('userNameDisplay').textContent = app.user.name;
-            
-            // Update today's tasks
-            const today = new Date().toDateString();
-            const todayTasks = app.tasks.filter(t => t.date.toDateString() === today);
-            
-            const taskList = document.getElementById('taskList');
-            if (todayTasks.length === 0) {
-                taskList.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No tasks yet. Add one to get started!</div></div>';
-            } else {
-                taskList.innerHTML = todayTasks.sort((a, b) => a.startTime.localeCompare(b.startTime))
-                    .map(task => createTaskElement(task)).join('');
-                setupTaskListeners(todayTasks);
+            try {
+                // Make sure dashboard is visible
+                const dashboard = document.getElementById('dashboard');
+                if (dashboard) {
+                    dashboard.classList.remove('hidden');
+                }
+                
+                // Hide other views
+                const views = document.querySelectorAll('[id$="View"]');
+                views.forEach(el => {
+                    el.classList.add('hidden');
+                });
+                
+                // Update header
+                const appTitle = document.getElementById('appTitle');
+                const userDisplay = document.getElementById('userNameDisplay');
+                if (appTitle) appTitle.textContent = `Home · ${app.user.name}`;
+                if (userDisplay) userDisplay.textContent = app.user.name;
+                
+                // Update today's tasks
+                const today = new Date().toDateString();
+                const todayTasks = app.tasks.filter(t => {
+                    if (!t.date) return false;
+                    const taskDate = new Date(t.date);
+                    return taskDate.toDateString() === today;
+                });
+                
+                const taskList = document.getElementById('taskList');
+                if (taskList) {
+                    if (todayTasks.length === 0) {
+                        taskList.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No tasks yet. Add one to get started!</div></div>';
+                    } else {
+                        taskList.innerHTML = todayTasks
+                            .sort((a, b) => {
+                                if (!a.startTime || !b.startTime) return 0;
+                                return a.startTime.localeCompare(b.startTime);
+                            })
+                            .map(task => createTaskElement(task)).join('');
+                        setupTaskListeners(todayTasks);
+                    }
+                }
+                
+                // Update progress
+                updateProgressTracker();
+                
+                // Update quote
+                const randomQuote = app.quotes[Math.floor(Math.random() * app.quotes.length)];
+                const quoteText = document.getElementById('quoteText');
+                const quoteAuthor = document.getElementById('quoteAuthor');
+                if (quoteText) quoteText.textContent = `"${randomQuote.text}"`;
+                if (quoteAuthor) quoteAuthor.textContent = `— ${randomQuote.author}`;
+                
+            } catch (error) {
+                console.error('Error rendering dashboard:', error);
             }
-            
-            // Update progress
-            updateProgressTracker();
-            
-            // Update quote
-            const randomQuote = app.quotes[Math.floor(Math.random() * app.quotes.length)];
-            document.getElementById('quoteText').textContent = `"${randomQuote.text}"`;
-            document.getElementById('quoteAuthor').textContent = `— ${randomQuote.author}`;
         }
 
         function createTaskElement(task) {
@@ -2070,74 +2172,113 @@
         }
 
         function renderAllTasks(filter = 'all', searchTerm = '') {
-            let tasks = app.tasks;
-            
-            if (filter === 'active') {
-                tasks = tasks.filter(t => !t.completed);
-            } else if (filter === 'completed') {
-                tasks = tasks.filter(t => t.completed);
-            }
-            
-            if (searchTerm) {
-                tasks = tasks.filter(t => 
-                    t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    t.category.toLowerCase().includes(searchTerm.toLowerCase())
-                );
-            }
-            
-            tasks.sort((a, b) => b.date - a.date || a.startTime.localeCompare(b.startTime));
-            
-            const taskList = document.getElementById('allTaskList');
-            if (tasks.length === 0) {
-                taskList.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No tasks found</div></div>';
-            } else {
-                taskList.innerHTML = tasks.map(task => createTaskElement(task)).join('');
-                setupTaskListeners(tasks);
+            try {
+                let tasks = [...app.tasks];
+                
+                if (filter === 'active') {
+                    tasks = tasks.filter(t => !t.completed);
+                } else if (filter === 'completed') {
+                    tasks = tasks.filter(t => t.completed);
+                }
+                
+                if (searchTerm) {
+                    tasks = tasks.filter(t => 
+                        (t.title && t.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                        (t.category && t.category.toLowerCase().includes(searchTerm.toLowerCase()))
+                    );
+                }
+                
+                tasks.sort((a, b) => {
+                    if (!a.date || !b.date) return 0;
+                    const dateCompare = new Date(b.date) - new Date(a.date);
+                    if (dateCompare !== 0) return dateCompare;
+                    if (!a.startTime || !b.startTime) return 0;
+                    return a.startTime.localeCompare(b.startTime);
+                });
+                
+                const taskList = document.getElementById('allTaskList');
+                if (!taskList) return;
+                
+                if (tasks.length === 0) {
+                    taskList.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No tasks found</div></div>';
+                } else {
+                    taskList.innerHTML = tasks.map(task => createTaskElement(task)).join('');
+                    setupTaskListeners(tasks);
+                }
+            } catch (error) {
+                console.error('Error rendering all tasks:', error);
             }
         }
 
         // ===== PROGRESS TRACKER =====
         function updateProgressTracker() {
-            const today = new Date().toDateString();
-            const todayTasks = app.tasks.filter(t => t.date.toDateString() === today);
-            const completed = todayTasks.filter(t => t.completed).length;
-            const pending = todayTasks.length - completed;
-            
-            document.getElementById('completedCount').textContent = completed;
-            document.getElementById('completedPercent').textContent = `${Math.round((completed / todayTasks.length) * 100) || 0}%`;
-            
-            document.getElementById('pendingCount').textContent = pending;
-            document.getElementById('pendingPercent').textContent = `${Math.round((pending / todayTasks.length) * 100) || 0}%`;
-            
-            // Streak
-            updateStreak();
-            document.getElementById('streakCount').textContent = app.user.streak;
-            document.getElementById('streakDays').textContent = `${app.user.streak} day${app.user.streak !== 1 ? 's' : ''}`;
-            
-            // Productivity
-            const productivity = todayTasks.length > 0 ? Math.round((completed / todayTasks.length) * 100) : 0;
-            document.getElementById('productivityScore').textContent = productivity;
-            document.getElementById('productivityPercent').textContent = `${productivity}%`;
+            try {
+                const today = new Date().toDateString();
+                const todayTasks = app.tasks.filter(t => {
+                    if (!t.date) return false;
+                    const taskDate = new Date(t.date);
+                    return taskDate.toDateString() === today;
+                });
+                
+                const completed = todayTasks.filter(t => t.completed).length;
+                const pending = todayTasks.length - completed;
+                
+                const completedEl = document.getElementById('completedCount');
+                const completedPercentEl = document.getElementById('completedPercent');
+                const pendingEl = document.getElementById('pendingCount');
+                const pendingPercentEl = document.getElementById('pendingPercent');
+                
+                if (completedEl) completedEl.textContent = completed;
+                if (completedPercentEl) completedPercentEl.textContent = `${Math.round((completed / (todayTasks.length || 1)) * 100)}%`;
+                
+                if (pendingEl) pendingEl.textContent = pending;
+                if (pendingPercentEl) pendingPercentEl.textContent = `${Math.round((pending / (todayTasks.length || 1)) * 100)}%`;
+                
+                // Streak
+                updateStreak();
+                const streakEl = document.getElementById('streakCount');
+                const streakDaysEl = document.getElementById('streakDays');
+                if (streakEl) streakEl.textContent = app.user.streak;
+                if (streakDaysEl) streakDaysEl.textContent = `${app.user.streak} day${app.user.streak !== 1 ? 's' : ''}`;
+                
+                // Productivity
+                const productivity = todayTasks.length > 0 ? Math.round((completed / todayTasks.length) * 100) : 0;
+                const productivityEl = document.getElementById('productivityScore');
+                const productivityPercentEl = document.getElementById('productivityPercent');
+                if (productivityEl) productivityEl.textContent = productivity;
+                if (productivityPercentEl) productivityPercentEl.textContent = `${productivity}%`;
+                
+            } catch (error) {
+                console.error('Error updating progress tracker:', error);
+            }
         }
 
         function updateStreak() {
-            const today = new Date().toDateString();
-            const yesterday = new Date(Date.now() - 86400000).toDateString();
-            
-            if (app.user.lastActiveDate === today) return;
-            
-            const todayTasks = app.tasks.filter(t => t.date.toDateString() === today);
-            const completedToday = todayTasks.filter(t => t.completed).length;
-            
-            if (completedToday > 0) {
-                if (app.user.lastActiveDate === yesterday) {
-                    app.user.streak++;
-                } else {
-                    app.user.streak = 1;
+            try {
+                const today = new Date().toDateString();
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                
+                if (app.user.lastActiveDate === today) return;
+                
+                const todayTasks = app.tasks.filter(t => {
+                    if (!t.date) return false;
+                    const taskDate = new Date(t.date);
+                    return taskDate.toDateString() === today;
+                });
+                const completedToday = todayTasks.filter(t => t.completed).length;
+                
+                if (completedToday > 0) {
+                    if (app.user.lastActiveDate === yesterday) {
+                        app.user.streak++;
+                    } else {
+                        app.user.streak = 1;
+                    }
                 }
+                
+                app.user.lastActiveDate = today;
+            } catch (error) {
+                console.error('Error updating streak:', error);
             }
-            
-            app.user.lastActiveDate = today;
         }
 
         // ===== CALENDAR =====
@@ -2206,118 +2347,177 @@
         }
 
         function renderCalendarTasks() {
-            const selectedDate = app.currentDate.toDateString();
-            const tasks = app.tasks.filter(t => t.date.toDateString() === selectedDate);
-            
-            const taskList = document.getElementById('calendarTaskList');
-            if (tasks.length === 0) {
-                taskList.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No tasks for this date</div></div>';
-            } else {
-                taskList.innerHTML = tasks.map(task => createTaskElement(task)).join('');
-                setupTaskListeners(tasks);
+            try {
+                const selectedDate = app.currentDate.toDateString();
+                const tasks = app.tasks.filter(t => {
+                    if (!t.date) return false;
+                    const taskDate = new Date(t.date);
+                    return taskDate.toDateString() === selectedDate;
+                });
+                
+                const taskList = document.getElementById('calendarTaskList');
+                if (!taskList) return;
+                
+                if (tasks.length === 0) {
+                    taskList.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No tasks for this date</div></div>';
+                } else {
+                    taskList.innerHTML = tasks.map(task => createTaskElement(task)).join('');
+                    setupTaskListeners(tasks);
+                }
+            } catch (error) {
+                console.error('Error rendering calendar tasks:', error);
             }
         }
 
         // ===== ANALYTICS =====
         function renderAnalytics() {
-            const now = new Date();
-            const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-            
-            // Weekly
-            const weekTasks = app.tasks.filter(t => t.date >= weekStart && t.date <= new Date()).filter(t => t.completed);
-            document.getElementById('weeklyTotal').textContent = weekTasks.length;
-            renderWeeklyChart();
-            
-            // Monthly
-            const monthTasks = app.tasks.filter(t => t.date >= monthStart && t.date <= new Date()).filter(t => t.completed);
-            document.getElementById('monthlyTotal').textContent = monthTasks.length;
-            renderMonthlyChart();
-            
-            // Productivity
-            const allTasks = app.tasks.filter(t => t.date <= new Date());
-            const completedAll = allTasks.filter(t => t.completed).length;
-            const avgProductivity = allTasks.length > 0 ? Math.round((completedAll / allTasks.length) * 100) : 0;
-            document.getElementById('averageProductivity').textContent = avgProductivity + '%';
-            renderTrendChart();
-            
-            // Time management
-            const onTimeCount = app.tasks.filter(t => {
-                const endTime = t.endTime.split(':');
-                const taskEnd = new Date(t.date);
-                taskEnd.setHours(parseInt(endTime[0]), parseInt(endTime[1]));
-                return t.completed && taskEnd <= new Date();
-            }).length;
-            
-            const completedCount = app.tasks.filter(t => t.completed).length;
-            const onTimePercent = completedCount > 0 ? Math.round((onTimeCount / completedCount) * 100) : 0;
-            document.getElementById('onTimePercent').textContent = onTimePercent + '%';
-            
-            const avgDuration = calculateAverageDuration();
-            document.getElementById('avgDuration').textContent = avgDuration;
+            try {
+                const now = new Date();
+                const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                
+                // Weekly
+                const weekTasks = app.tasks.filter(t => {
+                    if (!t.date) return false;
+                    const taskDate = new Date(t.date);
+                    return taskDate >= weekStart && taskDate <= new Date() && t.completed;
+                });
+                const weeklyTotalEl = document.getElementById('weeklyTotal');
+                if (weeklyTotalEl) weeklyTotalEl.textContent = weekTasks.length;
+                renderWeeklyChart();
+                
+                // Monthly
+                const monthTasks = app.tasks.filter(t => {
+                    if (!t.date) return false;
+                    const taskDate = new Date(t.date);
+                    return taskDate >= monthStart && taskDate <= new Date() && t.completed;
+                });
+                const monthlyTotalEl = document.getElementById('monthlyTotal');
+                if (monthlyTotalEl) monthlyTotalEl.textContent = monthTasks.length;
+                renderMonthlyChart();
+                
+                // Productivity
+                const allTasks = app.tasks.filter(t => {
+                    if (!t.date) return false;
+                    const taskDate = new Date(t.date);
+                    return taskDate <= new Date();
+                });
+                const completedAll = allTasks.filter(t => t.completed).length;
+                const avgProductivity = allTasks.length > 0 ? Math.round((completedAll / allTasks.length) * 100) : 0;
+                const avgProdEl = document.getElementById('averageProductivity');
+                if (avgProdEl) avgProdEl.textContent = avgProductivity + '%';
+                renderTrendChart();
+                
+                // Time management
+                const onTimeCount = app.tasks.filter(t => {
+                    if (!t.date || !t.endTime) return false;
+                    const endTime = t.endTime.split(':');
+                    const taskEnd = new Date(t.date);
+                    taskEnd.setHours(parseInt(endTime[0]), parseInt(endTime[1]));
+                    return t.completed && taskEnd <= new Date();
+                }).length;
+                
+                const completedCount = app.tasks.filter(t => t.completed).length;
+                const onTimePercent = completedCount > 0 ? Math.round((onTimeCount / completedCount) * 100) : 0;
+                const onTimeEl = document.getElementById('onTimePercent');
+                if (onTimeEl) onTimeEl.textContent = onTimePercent + '%';
+                
+                const avgDuration = calculateAverageDuration();
+                const avgDurEl = document.getElementById('avgDuration');
+                if (avgDurEl) avgDurEl.textContent = avgDuration;
+                
+            } catch (error) {
+                console.error('Error rendering analytics:', error);
+            }
         }
 
         function renderWeeklyChart() {
-            const chart = document.getElementById('weeklyChart');
-            const data = Array(7).fill(0);
-            const now = new Date();
-            
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(now);
-                date.setDate(date.getDate() - (6 - i));
-                const count = app.tasks.filter(t => 
-                    t.date.toDateString() === date.toDateString() && t.completed
-                ).length;
-                data[i] = count;
+            try {
+                const chart = document.getElementById('weeklyChart');
+                if (!chart) return;
+                
+                const data = Array(7).fill(0);
+                const now = new Date();
+                
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(now);
+                    date.setDate(date.getDate() - (6 - i));
+                    const count = app.tasks.filter(t => {
+                        if (!t.date) return false;
+                        const taskDate = new Date(t.date);
+                        return taskDate.toDateString() === date.toDateString() && t.completed;
+                    }).length;
+                    data[i] = count;
+                }
+                
+                const maxValue = Math.max(...data, 1);
+                chart.innerHTML = data.map((val, i) => {
+                    const height = (val / maxValue) * 100;
+                    return `<div class="chart-bar" style="left: ${i * 14.28}%; height: ${height}%;"></div>`;
+                }).join('');
+            } catch (error) {
+                console.error('Error rendering weekly chart:', error);
             }
-            
-            const maxValue = Math.max(...data, 1);
-            chart.innerHTML = data.map((val, i) => {
-                const height = (val / maxValue) * 100;
-                return `<div class="chart-bar" style="left: ${i * 14.28}%; height: ${height}%;"></div>`;
-            }).join('');
         }
 
         function renderMonthlyChart() {
-            const chart = document.getElementById('monthlyChart');
-            const data = Array(4).fill(0);
-            const now = new Date();
-            const month = now.getMonth();
-            const year = now.getFullYear();
-            
-            for (let week = 0; week < 4; week++) {
-                const weekStart = new Date(year, month, week * 7 + 1);
-                const weekEnd = new Date(year, month, week * 7 + 8);
-                const count = app.tasks.filter(t => 
-                    t.date >= weekStart && t.date <= weekEnd && t.completed
-                ).length;
-                data[week] = count;
+            try {
+                const chart = document.getElementById('monthlyChart');
+                if (!chart) return;
+                
+                const data = Array(4).fill(0);
+                const now = new Date();
+                const month = now.getMonth();
+                const year = now.getFullYear();
+                
+                for (let week = 0; week < 4; week++) {
+                    const weekStart = new Date(year, month, week * 7 + 1);
+                    const weekEnd = new Date(year, month, week * 7 + 8);
+                    const count = app.tasks.filter(t => {
+                        if (!t.date) return false;
+                        const taskDate = new Date(t.date);
+                        return taskDate >= weekStart && taskDate <= weekEnd && t.completed;
+                    }).length;
+                    data[week] = count;
+                }
+                
+                const maxValue = Math.max(...data, 1);
+                chart.innerHTML = data.map((val, i) => {
+                    const height = (val / maxValue) * 100;
+                    return `<div class="chart-bar" style="left: ${i * 25}%; height: ${height}%;"></div>`;
+                }).join('');
+            } catch (error) {
+                console.error('Error rendering monthly chart:', error);
             }
-            
-            const maxValue = Math.max(...data, 1);
-            chart.innerHTML = data.map((val, i) => {
-                const height = (val / maxValue) * 100;
-                return `<div class="chart-bar" style="left: ${i * 25}%; height: ${height}%;"></div>`;
-            }).join('');
         }
 
         function renderTrendChart() {
-            const chart = document.getElementById('trendChart');
-            const data = Array(7).fill(0);
-            const now = new Date();
-            
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(now);
-                date.setDate(date.getDate() - (6 - i));
-                const dayTasks = app.tasks.filter(t => t.date.toDateString() === date.toDateString());
-                const completed = dayTasks.filter(t => t.completed).length;
-                data[i] = dayTasks.length > 0 ? Math.round((completed / dayTasks.length) * 100) : 0;
+            try {
+                const chart = document.getElementById('trendChart');
+                if (!chart) return;
+                
+                const data = Array(7).fill(0);
+                const now = new Date();
+                
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(now);
+                    date.setDate(date.getDate() - (6 - i));
+                    const dayTasks = app.tasks.filter(t => {
+                        if (!t.date) return false;
+                        const taskDate = new Date(t.date);
+                        return taskDate.toDateString() === date.toDateString();
+                    });
+                    const completed = dayTasks.filter(t => t.completed).length;
+                    data[i] = dayTasks.length > 0 ? Math.round((completed / dayTasks.length) * 100) : 0;
+                }
+                
+                chart.innerHTML = data.map((val, i) => {
+                    const height = val;
+                    return `<div class="chart-bar" style="left: ${i * 14.28}%; height: ${height}%;"></div>`;
+                }).join('');
+            } catch (error) {
+                console.error('Error rendering trend chart:', error);
             }
-            
-            chart.innerHTML = data.map((val, i) => {
-                const height = val;
-                return `<div class="chart-bar" style="left: ${i * 14.28}%; height: ${height}%;"></div>`;
-            }).join('');
         }
 
         function calculateAverageDuration() {
@@ -2337,60 +2537,105 @@
 
         // ===== SETTINGS =====
         function updateSettingsForm() {
-            document.getElementById('settingsNameInput').value = app.user.name;
+            try {
+                const settingsNameInput = document.getElementById('settingsNameInput');
+                if (settingsNameInput) {
+                    settingsNameInput.value = app.user.name || '';
+                }
+            } catch (error) {
+                console.error('Error updating settings form:', error);
+            }
         }
 
         function handleNameUpdate() {
-            const newName = document.getElementById('settingsNameInput').value.trim();
-            if (newName) {
+            try {
+                const settingsNameInput = document.getElementById('settingsNameInput');
+                const newName = settingsNameInput?.value?.trim() || '';
+                
+                if (!newName || newName.length === 0) {
+                    showToast('Please enter a name', 'error');
+                    return;
+                }
+                
                 app.user.name = newName;
                 storage.save();
+                
+                // Update all name displays
                 document.getElementById('userNameDisplay').textContent = newName;
+                document.getElementById('appTitle').textContent = `Home · ${newName}`;
+                
                 showToast('Name updated successfully!', 'success');
+            } catch (error) {
+                console.error('Error updating name:', error);
+                showToast('Error updating name', 'error');
             }
         }
 
         function handleExport() {
-            const data = {
-                user: app.user,
-                tasks: app.tasks,
-                exportDate: new Date().toISOString()
-            };
-            
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `timeflow-backup-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            showToast('Data exported successfully!', 'success');
+            try {
+                const data = {
+                    user: app.user,
+                    tasks: app.tasks,
+                    exportDate: new Date().toISOString()
+                };
+                
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `timeflow-backup-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+                showToast('Data exported successfully!', 'success');
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showToast('Error exporting data', 'error');
+            }
         }
 
         function handleImport(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    if (data.user && data.tasks) {
-                        app.user = data.user;
-                        app.tasks = data.tasks.map(t => ({
-                            ...t,
-                            date: new Date(t.date)
-                        }));
-                        storage.save();
-                        renderDashboard();
-                        showToast('Data imported successfully!', 'success');
+            try {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.user && data.tasks && Array.isArray(data.tasks)) {
+                            app.user = data.user;
+                            app.tasks = data.tasks.map(t => ({
+                                ...t,
+                                date: new Date(t.date)
+                            }));
+                            storage.save();
+                            
+                            // Update displays
+                            document.getElementById('userNameDisplay').textContent = app.user.name;
+                            document.getElementById('settingsNameInput').value = app.user.name;
+                            document.getElementById('appTitle').textContent = `Home · ${app.user.name}`;
+                            
+                            renderDashboard();
+                            renderAllTasks();
+                            showToast('Data imported successfully!', 'success');
+                        } else {
+                            showToast('Invalid file format', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error parsing file:', error);
+                        showToast('Invalid file format', 'error');
                     }
-                } catch (error) {
-                    showToast('Invalid file format', 'error');
-                }
-            };
-            reader.readAsText(file);
+                };
+                reader.readAsText(file);
+                
+                // Reset file input
+                e.target.value = '';
+            } catch (error) {
+                console.error('Error importing data:', error);
+                showToast('Error importing data', 'error');
+            }
         }
 
         function handleReset() {
@@ -2424,7 +2669,16 @@
         }
 
         // ===== INITIALIZATION =====
-        initialize();
+        document.addEventListener('DOMContentLoaded', function() {
+            initialize();
+        });
+        
+        // Also initialize immediately in case DOM is already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
     </script>
 </body>
 </html>
