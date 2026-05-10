@@ -58,6 +58,10 @@
 [data-theme="emerald"] { --primary: #10b981; --primary2: #34d399; --glow: rgba(16,185,129,0.3); }
 [data-theme="rose"] { --primary: #f43f5e; --primary2: #fb7185; --glow: rgba(244,63,94,0.3); }
 [data-theme="amber"] { --primary: #f59e0b; --primary2: #fbbf24; --glow: rgba(245,158,11,0.3); }
+[data-accent="emerald"] { --primary: #10b981; --primary2: #34d399; --glow: rgba(16,185,129,0.3); }
+[data-accent="rose"] { --primary: #f43f5e; --primary2: #fb7185; --glow: rgba(244,63,94,0.3); }
+[data-accent="amber"] { --primary: #f59e0b; --primary2: #fbbf24; --glow: rgba(245,158,11,0.3); }
+
 
 /* ============================================================
    RESET & BASE
@@ -348,6 +352,102 @@ button { cursor: pointer; border: none; outline: none; }
   display: flex; align-items: center; justify-content: center; transition: var(--transition);
 }
 .task-act-btn:hover { background: var(--primary); color: white; }
+
+/* Dashboard Time-wise Timeline */
+.timeline-wrap {
+  position: relative;
+  padding: 4px 0 4px 8px;
+}
+.timeline-wrap::before {
+  content: '';
+  position: absolute;
+  left: 21px;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--primary), var(--primary2), transparent);
+  opacity: 0.55;
+}
+.timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-left: 28px;
+}
+.timeline-dot {
+  position: absolute;
+  left: 5px;
+  top: 18px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 4px solid var(--primary);
+  box-shadow: 0 0 0 5px var(--glow), 0 0 18px var(--glow);
+  z-index: 2;
+}
+.timeline-time {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--primary);
+  font-weight: 700;
+  padding-top: 15px;
+  line-height: 1.25;
+}
+.timeline-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 8px 28px var(--shadow);
+  transition: var(--transition);
+}
+.timeline-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+.timeline-card.completed { opacity: 0.68; }
+.timeline-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.timeline-title {
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.timeline-card.completed .timeline-title { text-decoration: line-through; }
+.timeline-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.timeline-status {
+  margin-top: 8px;
+  height: 5px;
+  background: var(--bg3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.timeline-status-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--primary), var(--primary2));
+}
+.timeline-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
 
 /* Subject pill on task */
 .subj-badge {
@@ -894,7 +994,7 @@ button { cursor: pointer; border: none; outline: none; }
 
       <!-- Today's Tasks -->
       <div class="sec-header">
-        <div class="sec-title"><span class="dot"></span> Today's Schedule</div>
+        <div class="sec-title"><span class="dot"></span> Today's Time-wise Timeline</div>
         <span class="sec-link" onclick="goPage('tasks')">View All →</span>
       </div>
       <div id="todayTasksList"></div>
@@ -1351,7 +1451,6 @@ function launchApp() {
   renderAnalytics();
   updateSettings();
   moveMissedTasks();
-  updateStreak();
 }
 
 /* ============================================================
@@ -1370,7 +1469,18 @@ function updateClock() {
   if (el) el.textContent = `${h}:${m}:${s}`;
 }
 function todayStr() {
-  return new Date().toISOString().slice(0,10);
+  return dateToLocalStr(new Date());
+}
+function dateToLocalStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[ch]));
 }
 function formatDate(d) {
   const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
@@ -1457,12 +1567,49 @@ function renderTodayTasks() {
   const today = todayStr();
   const list = document.getElementById('todayTasksList');
   if (!list) return;
-  const tasks = DB.tasks.filter(t => t.date === today).sort((a,b) => (a.startTime||'').localeCompare(b.startTime||''));
+  const tasks = DB.tasks
+    .filter(t => t.date === today)
+    .sort((a,b) => `${a.startTime || '99:99'}${a.endTime || ''}`.localeCompare(`${b.startTime || '99:99'}${b.endTime || ''}`));
   if (tasks.length === 0) {
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No tasks for today.<br>Tap + to add your first task!</div></div>`;
     return;
   }
-  list.innerHTML = tasks.map(t => taskHTML(t, true)).join('');
+  list.innerHTML = `<div class="timeline-wrap">${tasks.map(t => timelineTaskHTML(t)).join('')}</div>`;
+}
+
+function timelineTaskHTML(t) {
+  const subj = DB.subjects.find(s => s.id === t.subjectId);
+  const prioClass = t.priority === 'high' ? 'priority-high' : t.priority === 'medium' ? 'priority-medium' : 'priority-low';
+  const prioLabel = t.priority === 'high' ? 'High' : t.priority === 'medium' ? 'Medium' : 'Low';
+  const timeMain = t.startTime ? t.startTime : 'Anytime';
+  const timeSub = t.endTime ? `to ${t.endTime}` : '';
+  const statusPct = t.status === 'completed' ? 100 : t.status === 'missed' ? 100 : 35;
+  const now = new Date();
+  const cur = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const isNow = t.startTime && t.endTime && cur >= t.startTime && cur <= t.endTime && t.status !== 'completed';
+  return `<div class="timeline-item">
+    <div class="timeline-dot" style="border-color:${t.status === 'completed' ? 'var(--accent2)' : t.status === 'missed' ? 'var(--danger)' : 'var(--primary)'}"></div>
+    <div class="timeline-time"><div>${escapeHTML(timeMain)}</div><div style="color:var(--text2);font-weight:500">${escapeHTML(timeSub)}</div></div>
+    <div class="timeline-card ${t.status === 'completed' ? 'completed' : ''}">
+      <div class="timeline-title-row">
+        <div style="min-width:0;flex:1">
+          <div class="timeline-title">${escapeHTML(t.title)}</div>
+          <div class="task-meta">
+            ${subj ? `<span class="subj-badge">${escapeHTML(subj.icon || '📖')} ${escapeHTML(subj.name)}</span>` : ''}
+            <span class="task-tag ${prioClass}">${prioLabel}</span>
+            <span class="task-time"><i class="fas fa-calendar-day"></i> Today</span>
+          </div>
+          ${isNow ? `<div class="timeline-now"><i class="fas fa-bolt"></i> Running now</div>` : ''}
+        </div>
+        <div class="timeline-actions">
+          <button class="task-act-btn" onclick="cycleStatus('${t.id}')" title="Change status"><i class="fas ${t.status === 'completed' ? 'fa-rotate-left' : 'fa-check'}"></i></button>
+          <button class="task-act-btn" onclick="editTask('${t.id}')" title="Edit"><i class="fas fa-pen"></i></button>
+          <button class="task-act-btn" style="color:var(--danger)" onclick="deleteTask('${t.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      <div class="timeline-status"><div class="timeline-status-fill" style="width:${statusPct}%;background:${t.status === 'missed' ? 'var(--danger)' : t.status === 'completed' ? 'var(--accent2)' : 'linear-gradient(90deg,var(--primary),var(--primary2))'}"></div></div>
+    </div>
+  </div>`;
 }
 
 function renderSubjectQuick() {
@@ -1499,7 +1646,7 @@ function renderSubjectQuick() {
    ============================================================ */
 function taskHTML(t, compact) {
   const subj = DB.subjects.find(s => s.id === t.subjectId);
-  const statusIcon = t.status === 'completed' ? '<i class="fas fa-check"></i>' : t.status === 'pending' ? '<i class="fas fa-clock"></i>' : '';
+  const statusIcon = t.status === 'completed' ? '<i class="fas fa-check"></i>' : t.status === 'pending' ? '<i class="fas fa-clock"></i>' : t.status === 'missed' ? '<i class="fas fa-xmark"></i>' : '';
   const checkClass = t.status === 'completed' ? 'done' : t.status === 'pending' ? 'pending-mark' : '';
   const prioClass = t.priority === 'high' ? 'priority-high' : t.priority === 'medium' ? 'priority-medium' : 'priority-low';
   const prioLabel = t.priority === 'high' ? '🔴 High' : t.priority === 'medium' ? '🟡 Medium' : '🟢 Low';
@@ -1507,13 +1654,13 @@ function taskHTML(t, compact) {
   return `<div class="task-item ${t.status === 'completed' ? 'completed' : ''}" id="task-${t.id}">
     <div class="task-check ${checkClass}" onclick="cycleStatus('${t.id}')">${statusIcon}</div>
     <div class="task-body">
-      <div class="task-title">${t.title}</div>
+      <div class="task-title">${escapeHTML(t.title)}</div>
       <div class="task-meta">
-        ${subj ? `<span class="subj-badge">${subj.icon||'📖'} ${subj.name}</span>` : ''}
+        ${subj ? `<span class="subj-badge">${escapeHTML(subj.icon || '📖')} ${escapeHTML(subj.name)}</span>` : ''}
         <span class="task-tag ${prioClass}">${prioLabel}</span>
-        ${timeStr ? `<span class="task-time"><i class="fas fa-clock"></i> ${timeStr}</span>` : ''}
+        ${timeStr ? `<span class="task-time"><i class="fas fa-clock"></i> ${escapeHTML(timeStr)}</span>` : ''}
       </div>
-      ${t.notes && !compact ? `<div style="font-size:0.78rem;color:var(--text2);margin-top:6px">${t.notes}</div>` : ''}
+      ${t.notes && !compact ? `<div style="font-size:0.78rem;color:var(--text2);margin-top:6px">${escapeHTML(t.notes)}</div>` : ''}
     </div>
     <div class="task-actions">
       <button class="task-act-btn" onclick="editTask('${t.id}')" title="Edit"><i class="fas fa-pen"></i></button>
@@ -1530,17 +1677,17 @@ let editingTaskId = null;
 
 function openTaskModal(date) {
   editingTaskId = null;
+  const safeDate = (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : todayStr();
   document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-plus-circle" style="color:var(--primary)"></i> Add Task';
   document.getElementById('tf-title').value = '';
   document.getElementById('tf-notes').value = '';
   document.getElementById('tf-start').value = '';
   document.getElementById('tf-end').value = '';
-  document.getElementById('tf-date').value = date || todayStr();
+  document.getElementById('tf-date').value = safeDate;
   document.getElementById('tf-priority').value = 'medium';
   populateSubjectDropdown('tf-subject');
   openModal('taskModal');
 }
-
 function editTask(id) {
   const t = DB.tasks.find(x => x.id === id);
   if (!t) return;
@@ -1559,13 +1706,16 @@ function editTask(id) {
 function saveTask() {
   const title = document.getElementById('tf-title').value.trim();
   if (!title) { showToast('warn','Missing','Please enter a task title!'); return; }
+  const start = document.getElementById('tf-start').value;
+  const end = document.getElementById('tf-end').value;
+  if (start && end && end <= start) { showToast('warn','Time error','End time must be after start time.'); return; }
   const task = {
     id: editingTaskId || genId(),
     title,
     subjectId: document.getElementById('tf-subject').value,
     priority: document.getElementById('tf-priority').value,
-    startTime: document.getElementById('tf-start').value,
-    endTime: document.getElementById('tf-end').value,
+    startTime: start,
+    endTime: end,
     date: document.getElementById('tf-date').value || todayStr(),
     notes: document.getElementById('tf-notes').value.trim(),
     status: 'active',
@@ -1597,6 +1747,8 @@ function cycleStatus(id) {
   if (t.status === 'completed') { showToast('success','Done! 🎉','Task marked completed!'); playSound(); updateStreak(); }
   refreshDashboard();
   renderTasksPage();
+  renderCalendar();
+  renderAnalytics();
 }
 
 function deleteTask(id) {
@@ -1883,7 +2035,7 @@ function renderTasksPage() {
       return t.title.toLowerCase().includes(search) || (s && s.name.toLowerCase().includes(search));
     });
   }
-  tasks.sort((a,b) => (a.date+a.startTime||'').localeCompare(b.date+b.startTime||''));
+  tasks.sort((a,b) => `${a.date || ''}${a.startTime || '99:99'}`.localeCompare(`${b.date || ''}${b.startTime || '99:99'}`));
   if (tasks.length === 0) {
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No tasks found.<br>Try a different filter or add new tasks!</div></div>`;
     return;
@@ -1994,7 +2146,7 @@ function renderAnalytics() {
     const data = days.map((_, i) => {
       const d = new Date(today);
       d.setDate(today.getDate() - (6 - i));
-      const ds = d.toISOString().slice(0,10);
+      const ds = dateToLocalStr(d);
       const completed = DB.tasks.filter(t => t.date === ds && t.status === 'completed').length;
       return { day: days[i], val: completed };
     });
@@ -2015,7 +2167,7 @@ function renderAnalytics() {
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
-      const ds = d.toISOString().slice(0,10);
+      const ds = dateToLocalStr(d);
       const hadTask = DB.tasks.some(t => t.date === ds && t.status === 'completed');
       const isToday = ds === todayStr();
       html += `<div class="streak-dot ${isToday?'today':hadTask?'done':'miss'}" title="${ds}">${d.getDate()}</div>`;
@@ -2077,7 +2229,7 @@ function calcStreak() {
   for (let i = 0; i < 365; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const ds = d.toISOString().slice(0,10);
+    const ds = dateToLocalStr(d);
     const hadCompleted = DB.tasks.some(t => t.date === ds && t.status === 'completed');
     if (hadCompleted) streak++;
     else if (i > 0) break;
@@ -2087,7 +2239,8 @@ function calcStreak() {
 
 function updateStreak() {
   const today = todayStr();
-  if (!DB.streak.includes(today)) {
+  const completedToday = DB.tasks.some(t => t.date === today && t.status === 'completed');
+  if (completedToday && !DB.streak.includes(today)) {
     DB.streak.push(today);
     saveDB();
   }
@@ -2113,8 +2266,8 @@ function goPage(name) {
   // Update FAB
   const fab = document.getElementById('fab');
   if (fab) {
-    if (name === 'subjects') { fab.innerHTML = '<i class="fas fa-plus"></i>'; fab.onclick = openSubjectModal; }
-    else { fab.innerHTML = '<i class="fas fa-plus"></i>'; fab.onclick = openTaskModal; }
+    if (name === 'subjects') { fab.innerHTML = '<i class="fas fa-plus"></i>'; fab.onclick = () => openSubjectModal(); }
+    else { fab.innerHTML = '<i class="fas fa-plus"></i>'; fab.onclick = () => openTaskModal(); }
   }
   window.scrollTo(0, 0);
 }
@@ -2158,15 +2311,12 @@ function editTarget() {
 }
 
 function toggleTheme() {
-  const cur = document.documentElement.getAttribute('data-theme');
-  const next = cur === 'light' ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', next);
   if (!DB.settings) DB.settings = {};
-  DB.settings.darkMode = next !== 'light';
+  DB.settings.darkMode = !(DB.settings.darkMode !== false);
   saveDB();
+  applyTheme();
   updateSettings();
 }
-
 function setThemeColor(color) {
   if (!DB.settings) DB.settings = {};
   DB.settings.accentColor = color;
@@ -2176,16 +2326,13 @@ function setThemeColor(color) {
 }
 
 function applyTheme() {
-  if (!DB.settings) return;
+  if (!DB.settings) DB.settings = { theme: 'dark', accentColor: 'dark', darkMode: true };
   const theme = DB.settings.darkMode === false ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', theme);
-  const accent = DB.settings.accentColor;
-  if (accent && accent !== 'dark') {
-    // Remove previous accent attributes and set new one
-    document.documentElement.setAttribute('data-accent', accent);
-  }
+  const accent = DB.settings.accentColor || 'dark';
+  if (accent && accent !== 'dark') document.documentElement.setAttribute('data-accent', accent);
+  else document.documentElement.removeAttribute('data-accent');
 }
-
 function exportData() {
   const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
